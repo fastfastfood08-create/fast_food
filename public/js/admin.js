@@ -604,9 +604,6 @@ function renderRatedOrders() {
                     <div style="font-size: 1.25rem; color: #FFC107; letter-spacing: 2px;">
                         ${'★'.repeat(order.rating)}${'<span style="color: #e5e7eb;">' + '★'.repeat(5 - order.rating) + '</span>'}
                     </div>
-                    <div style="font-weight: bold; color: ${order.rating >= 4 ? '#10b981' : (order.rating >= 3 ? '#f59e0b' : '#ef4444')}; font-size: 0.85rem; margin-top: 4px;">
-                        ${order.rating >= 4 ? 'متاز' : (order.rating >= 3 ? 'جيد' : 'ضعيف')}
-                    </div>
                 </div>
             </div>
             
