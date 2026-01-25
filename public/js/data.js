@@ -3,13 +3,49 @@
 // إدارة البيانات - Data Management (Backend Integrated)
 // =====================================================
 
+// Fallback Data (Matches Seed)
+const FALLBACK_DATA = {
+    categories: [
+        { id: 1, name: 'بيتزا', icon: '🍕', order: 1, active: true },
+        { id: 2, name: 'برغر', icon: '🍔', order: 2, active: true },
+        { id: 3, name: 'شاورما', icon: '🌯', order: 3, active: true },
+        { id: 4, name: 'طاكوس', icon: '🌮', order: 4, active: true },
+        { id: 5, name: 'سلطات', icon: '🥗', order: 5, active: true },
+        { id: 6, name: 'مشروبات', icon: '🥤', order: 6, active: true },
+        { id: 7, name: 'حلويات', icon: '🍰', order: 7, active: true }
+    ],
+    settings: {
+        restaurantName: 'مطعمي',
+        phone: '0555123456',
+        address: 'الجزائر العاصمة',
+        currency: 'دج',
+        isOpen: true,
+        allowPreOrders: true,
+        openTime: '10:00',
+        closeTime: '23:00',
+        delivery: { enabled: true, type: 'fixed', fixedCost: 200 },
+        adminPassword: 'admin123' // Fallback password
+    },
+    meals: [
+         { id: 1, categoryId: 1, name: 'بيتزا مارغريتا', description: 'صلصة طماطم طازجة، جبن موزاريلا، ريحان طازج', image: '', price: 800, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'صغيرة', price: 800 }, { name: 'وسط', price: 1200 }, { name: 'كبيرة', price: 1600 }] },
+         { id: 2, categoryId: 1, name: 'بيتزا خضار', description: 'فلفل ملون، زيتون، فطر، بصل، طماطم، جبن موزاريلا', image: '', price: 900, active: true, popular: false, order: 2, hasSizes: true, sizes: [{ name: 'Classic', price: 900 }, { name: 'Mega', price: 1400 }, { name: 'Family', price: 1900 }] },
+         { id: 3, categoryId: 1, name: 'بيتزا اللحم', description: 'لحم مفروم، فلفل، بصل، جبن موزاريلا، صلصة خاصة', image: '', price: 1000, active: true, popular: true, order: 3, hasSizes: true, sizes: [{ name: 'صغيرة', price: 1000 }, { name: 'وسط', price: 1500 }, { name: 'كبيرة', price: 2000 }] },
+         { id: 5, categoryId: 2, name: 'برغر كلاسيك', description: 'لحم بقري، جبن شيدر، خس، طماطم، بصل، صلصة خاصة', image: '', price: 600, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'Single', price: 600 }, { name: 'Double', price: 900 }, { name: 'Triple', price: 1200 }] },
+         { id: 8, categoryId: 3, name: 'شاورما دجاج', description: 'دجاج متبل، بطاطس، ثوم، مخلل، خبز عربي', image: '', price: 400, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'عادي', price: 400 }, { name: 'جامبو', price: 600 }] },
+         { id: 11, categoryId: 4, name: 'طاكوس دجاج', description: 'دجاج متبل، جبن، خس، صلصة حارة', image: '', price: 350, active: true, popular: false, order: 1, hasSizes: false, sizes: [] },
+         { id: 16, categoryId: 6, name: 'كوكا كولا', description: 'مشروب غازي بارد', image: '', price: 100, active: true, popular: false, order: 2, hasSizes: false, sizes: [] },
+         { id: 18, categoryId: 7, name: 'تيراميسو', description: 'كعكة إيطالية بالقهوة والماسكاربوني', image: '', price: 400, active: true, popular: true, order: 1, hasSizes: false, sizes: [] }
+    ]
+};
+
 // Global State
 const appState = {
     categories: [],
     meals: [],
-    settings: JSON.parse(localStorage.getItem('appSettings') || '{}'), // Load cached settings immediately
+    settings: JSON.parse(localStorage.getItem('appSettings')) || {}, 
     orders: []
 };
+
 
 // ... (existing code)
 
@@ -37,15 +73,15 @@ async function initializeData() {
             const [categories, meals, settings, orders] = await Promise.all([
                 ApiClient.getCategories().catch(err => {
                     console.error('Failed to load categories', err);
-                    return [];
+                    return null;
                 }),
                 ApiClient.getMeals().catch(err => {
                     console.error('Failed to load meals', err);
-                    return [];
+                    return null;
                 }),
                 ApiClient.getSettings().catch(err => {
                      console.error('Failed to load settings', err);
-                     return {};
+                     return null;
                 }),
                 ApiClient.getOrders().catch(err => {
                     // Orders might fail for non-admin, just return empty
@@ -53,13 +89,16 @@ async function initializeData() {
                 })
             ]);
             
-            // 2. Update State
-            appState.categories = categories;
-            appState.meals = meals;
-            appState.settings = settings;
+            // 2. Update State with Fallback
+            // If API returns null/empty, use FALLBACK_DATA
+            
+            appState.categories = (categories && categories.length > 0) ? categories : FALLBACK_DATA.categories;
+            appState.meals = (meals && meals.length > 0) ? meals : FALLBACK_DATA.meals;
+            // For settings, merge fallback with API result (if any)
+            appState.settings = { ...FALLBACK_DATA.settings, ...(settings || {}) };
 
             // Polyfill orderNumber and normalize items for frontend compatibility
-            appState.orders = orders.map(o => normalizeOrder(o));
+            appState.orders = (orders || []).map(o => normalizeOrder(o));
             
             isDataInitialized = true;
             console.log('✅ Data Initialized', appState);
@@ -70,6 +109,11 @@ async function initializeData() {
             return true;
         } catch (error) {
             console.error('❌ Data Initialization Failed:', error);
+            // Even on fatal error, use fallback
+            appState.categories = FALLBACK_DATA.categories;
+            appState.meals = FALLBACK_DATA.meals;
+            appState.settings = FALLBACK_DATA.settings;
+            document.dispatchEvent(new CustomEvent('data-ready'));
             return false;
         }
     })();
@@ -82,20 +126,21 @@ async function initializeData() {
 // ===================================
 
 function getCategories() {
-    return appState.categories || [];
+    return appState.categories || FALLBACK_DATA.categories;
 }
 
 function getMeals() {
-    return appState.meals || [];
+    return appState.meals || FALLBACK_DATA.meals;
 }
 
 function getSettings() {
     // Return with defaults if empty to avoid crashes
     return {
-        restaurantName: null, // Default to null to avoid showing generic name
+        restaurantName: 'مطعمي', 
         currency: 'دج',
-        isOpen: null, // Default to null to avoid flashing wrong status
+        isOpen: true, 
         delivery: { enabled: true, type: 'fixed', fixedCost: 200 },
+        adminPassword: 'admin123',
         ...appState.settings
     };
 }
