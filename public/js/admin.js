@@ -1385,6 +1385,13 @@ function closeMealModal() {
 async function saveMeal(event) {
     event.preventDefault();
     
+    // Add Loading State
+    const submitBtn = document.querySelector('#mealForm button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.textContent = '⏳ جاري الحفظ...';
+        submitBtn.disabled = true;
+    }
+    
     try {
         const id = document.getElementById('mealId').value;
         const name = document.getElementById('mealName').value;
@@ -1460,6 +1467,13 @@ async function saveMeal(event) {
     } catch (e) {
         console.error("Save Meal Error:", e);
         showToast('حدث خطأ أثناء حفظ الوجبة: ' + e.message, 'error');
+    } finally {
+        // Restore button state
+        const submitBtn = document.querySelector('#mealForm button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.textContent = 'حفظ';
+            submitBtn.disabled = false;
+        }
     }
 }
 
@@ -1526,7 +1540,10 @@ function cropAndSave() {
     
     // Get cropped canvas - Forced to 800x800
     // Get cropped canvas - Natural size (avoid stretching)
+    // Get cropped canvas - Limit to 1000x1000 for performance/quality balance
     const canvas = cropper.getCroppedCanvas({
+        maxWidth: 1000,
+        maxHeight: 1000,
         imageSmoothingEnabled: true,
         imageSmoothingQuality: 'high'
     });
