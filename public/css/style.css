@@ -579,30 +579,35 @@ a:hover { color: var(--primary-dark); }
 
 .meal-image { 
   width: 100%;
-  aspect-ratio: 1 / 1; /* Square 1:1 */
-  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary)); 
+  aspect-ratio: 1 / 1; /* Square 1:1 Container */
+  background: white; /* Neutral background for non-square images */
   overflow: hidden; 
   position: relative; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .meal-image::after { 
   content: ''; 
   position: absolute; 
   inset: 0; 
-  background: linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.08) 100%); 
+  /* Remove gradient overlay to let image pop, or make it very subtle at edges only */
+  pointer-events: none;
 }
 .meal-image img { 
   width: 100%; 
   height: 100%; 
-  object-fit: cover; 
+  object-fit: contain; /* SHOW FULL IMAGE */
   transition: all var(--duration-slow) var(--ease-smooth); 
 }
 .meal-card:hover .meal-image img { 
-  transform: scale(1.08); 
+  transform: scale(1.05); 
 }
 .meal-placeholder { 
   display: flex; 
   align-items: center; 
   justify-content: center; 
+  width: 100%;
   height: 100%; 
   font-size: 3.5rem; 
   background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary)); 
