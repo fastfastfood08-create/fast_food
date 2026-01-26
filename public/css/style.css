@@ -89,60 +89,116 @@
   --duration-fast: 200ms; --duration-normal: 350ms; --duration-slow: 500ms;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  /* 🎨 UNIFIED COLOR PALETTE - HEX/RGB ONLY (No Named Colors) */
+  --primary: #ff6b00;
+  --primary-dark: #e55d00;
+  --primary-light: #ff8533;
+  --primary-glow: rgba(255, 107, 0, 0.25);
+  
+  --secondary: #1a1a1a;
+  --secondary-dark: #000000;
+  --secondary-light: #333333;
+  
+  --accent: #ffb800;
+  --accent-light: #ffd54f;
+  
+  /* Backgrounds - Explicit HEX to prevent browser defaults */
+  --bg-primary: #fffef8; 
+  --bg-gradient-start: #fffef8;
+  --bg-gradient-mid: #fffbf0;
+  --bg-gradient-end: #fff8e8;
+  
+  --bg-secondary: #fffef8;
+  --bg-tertiary: #fff3d6;
+  --bg-card: #ffffff; /* Pure white for cards */
+  
+  /* Glass effects with fallbacks */
+  --glass: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 107, 0, 0.12);
+  
+  /* Text Colors - High Contrast */
+  --text-primary: #1a1a1a;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+  --text-dark: #000000;
+  --text-light: #ffffff;
+  
+  /* Status Colors */
+  --success: #2e7d32;
+  --warning: #ffb800;
+  --danger: #e53935;
+  --info: #1976d2;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #ff8533 0%, #ff6b00 50%, #e55d00 100%);
+  --gradient-fire: linear-gradient(135deg, #ffb800 0%, #ff6b00 100%);
+  
+  /* Spacing & Sizes */
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
+  --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem;
+  --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+  
+  --radius-sm: 12px; --radius-md: 16px; --radius-xl: 28px; --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-normal: 350ms;
+}
+
+html { 
+  scroll-behavior: smooth; 
+  font-size: 16px; /* Base size for REM units */
+}
 
 body {
-  font-family: var(--font-body);
-  background: var(--bg-primary);
+  font-family: 'Tajawal', 'Inter', sans-serif;
+  background-color: var(--bg-primary); /* Fallback */
+  background-image: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
   background-attachment: fixed;
   color: var(--text-primary);
-  line-height: 1.7;
+  line-height: 1.6;
   direction: rtl;
   min-height: 100vh;
-  position: relative;
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  -webkit-text-size-adjust: 100%; /* Prevent font scaling on orientation change */
 }
 
-/* خلفية ناعمة */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: 
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 184, 0, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(255, 107, 0, 0.05), transparent);
-  pointer-events: none;
-  z-index: -1;
-}
-
-::selection { background: var(--primary); color: white; }
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { 
-  background-color: rgba(0, 0, 0, 0.12); 
-  border-radius: 99px; 
-  transition: background-color 0.3s;
-}
-::-webkit-scrollbar-thumb:hover { 
-  background-color: var(--primary); 
-}
+/* Scrollbar Standardization */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--primary); }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: 'Outfit', 'Tajawal', sans-serif;
   color: var(--text-dark);
-  margin-bottom: var(--space-4);
 }
-h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; }
-h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); letter-spacing: -0.01em; }
-h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); }
 
-p { color: var(--text-secondary); margin-bottom: var(--space-4); }
-a { color: var(--primary); text-decoration: none; transition: all var(--duration-fast) var(--ease-smooth); }
-a:hover { color: var(--primary-dark); }
+a { text-decoration: none; color: inherit; }
+button, input { font-family: inherit; }
 
-.container { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-4); }
+/* 🖥️ DESKTOP CONTAINER LOGIC */
+.container { 
+  width: 100%;
+  max-width: 1280px; /* Standardize max width */
+  margin: 0 auto; 
+  padding: 0 20px;
+}
 
 /* ═══════════════════════════════════════════
    HEADER - أسود أنيق مع برتقالي

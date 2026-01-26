@@ -1,273 +1,196 @@
 /* ========================================
-   📱 PHONE OPTIMIZATION & DESIGN TWEAKS
+   📱 PHONE OPTIMIZATION (Strictly < 768px)
 ======================================== */
 
-/* 1. Header Cleanup for Phones */
-/* 1. App-Like Mobile Header */
-/* 1. App-Like Mobile Header */
 @media (max-width: 768px) {
-    /* Fixed Height & Layout */
+    
+    /* 1. Global Layout Fixes */
+    body {
+        padding-top: 60px !important; /* EXACT header height */
+    }
+
+    .container {
+        padding: 0 16px; 
+    }
+
+    /* 2. App-Like Header (Fixed Top) */
     .header {
-        padding: 0 16px; /* Horizontal padding for container */
+        padding: 0 16px;
         height: 60px;
         display: flex;
         align-items: center;
-        background: var(--secondary-dark);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        background: #000000; /* Explicit Black */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 9999;
     }
     
     .header-content {
-        display: flex; /* Use Flexbox for row */
+        display: flex;
         align-items: center;
-        justify-content: space-between; /* Maximum separation */
+        justify-content: space-between;
         width: 100%;
         gap: 0;
     }
     
-    /* LEFT (RTL: Right): Logo */
+    /* Logo */
     .logo {
         display: flex;
         align-items: center;
         gap: 8px;
-        z-index: 10;
         color: white;
         text-decoration: none;
-        flex-shrink: 0;
     }
-    .logo-icon {
-        width: 28px;
-        height: 28px;
-    }
-    #logoName {
-        display: block;
-        font-weight: 800;
-        font-size: 1.2rem;
-        color: white;
-    }
+    .logo-icon { width: 28px; height: 28px; }
+    #logoName { display: block; font-weight: 700; font-size: 1.1rem; color: white; }
 
-    /* RIGHT (RTL: Left): Actions */
+    /* Header Actions (Right) */
     .header-actions {
         display: flex;
         align-items: center;
         gap: 12px;
-        flex-shrink: 0;
     }
 
-    /* 1. "My Orders" Button -> Icon Only */
-    .header-actions .btn-secondary {
-        padding: 0 !important;
+    /* Action Buttons - Icons Only */
+    .header-actions .btn-secondary, 
+    .cart-btn {
         width: 40px !important;
         height: 40px !important;
+        padding: 0 !important;
         border-radius: 50% !important;
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        color: white !important;
         min-width: unset;
-        font-size: 0 !important;
+        font-size: 0 !important; /* Hide text */
         box-shadow: none;
-        transition: transform 0.2s;
     }
-    .header-actions .btn-secondary:active { transform: scale(0.95); }
+
+    /* My Orders Icon */
+    .header-actions .btn-secondary {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+    }
     .header-actions .btn-secondary::after {
         content: '📋';
         font-size: 1.2rem;
-        display: block;
     }
-    
-    /* 2. Cart Button -> Icon Only */
+
+    /* Cart Icon */
     .cart-btn {
-        padding: 0 !important;
-        width: 40px !important;
-        height: 40px !important;
-        border-radius: 50% !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--gradient-primary);
-        box-shadow: 0 4px 10px rgba(255, 107, 0, 0.3);
-        margin-left: 0;
+        background: var(--primary) !important; /* Force Brand Color */
         position: relative;
-        transition: transform 0.2s;
     }
-    .cart-btn:active { transform: scale(0.95); }
-    .cart-btn span { display: none; }
+    .cart-btn span { display: none; } /* Hide inner spans */
     .cart-btn::after {
         content: '🛒';
         font-size: 1.2rem;
         color: white;
     }
+
+    /* Cart Count Badge */
     .cart-count {
-        display: flex !important;
         position: absolute;
-        top: -2px !important;
-        right: -2px !important; 
-        left: auto !important;
-        width: 18px !important;
-        height: 18px !important;
-        min-width: 0 !important;
+        top: -2px; right: -2px;
+        width: 18px; height: 18px;
         font-size: 0.7rem !important;
-        background: var(--danger) !important;
-        border: 2px solid var(--secondary-dark) !important;
+        background: #ef4444 !important; /* Red */
         color: white !important;
-        padding: 0;
-        justify-content: center;
-        align-items: center;
         border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #000;
+        padding: 0;
     }
     .cart-count:empty, .cart-count:not(.has-items) { display: none !important; }
-    .cart-count.has-items { display: flex !important; }
 
+    /* Hide Desktop Elements */
     .restaurant-status { display: none !important; }
-}
 
-/* Global Padding Fix */
-@media (max-width: 768px) {
-    body {
-        /* Ensure content starts AFTER the 60px header */
-        padding-top: 76px !important; /* 60px header + 16px gap */
-    }
+    /* 3. Hero Section for Mobile */
     .hero {
-        /* Remove extra padding that pushes content too far down or up */
-        padding-top: 0 !important; 
         min-height: auto;
+        padding-top: 2rem !important;
         padding-bottom: 2rem;
         text-align: center;
+        background: transparent; /* Remove conflict bg */
     }
-    .hero h1 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-    }
-    .hero p {
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
-    }
-    .hero .btn {
-        width: 100%;
-        max-width: 280px;
-    }
-    .container {
-        padding: 0 16px;
-    }
-}
+    .hero h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+    .hero p { font-size: 1rem; padding: 0 1rem; }
+    .hero .btn { width: 100%; max-width: 280px; margin: 0 auto; }
+    .hero::after { display: none; } /* Remove floating emojis */
 
-
-/* 3. Categories Horizontal Scroll Polish */
-.categories-scroll {
-    padding: 1rem 1rem 2rem 1rem; /* More bottom padding for shadow clipping */
-    /* Ensure nice spacing on mobile */
-    justify-content: flex-start; /* Align left to invite scrolling */
-}
-@media (max-width: 768px) {
+    /* 4. Horizontal Categories */
     .categories-scroll {
-        gap: 1rem;
+        padding: 10px 4px 20px 4px; /* Space for shadow */
+        justify-content: flex-start;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
-    .category-card {
-        min-width: 90px;
-        padding: 0.8rem;
-    }
-    .category-icon {
-        font-size: 1.8rem;
-    }
-    .category-name {
-        font-size: 0.8rem;
-    }
-    /* Hide scrollbar completely but allow scroll */
-    .categories-scroll {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-    }
-    .categories-scroll::-webkit-scrollbar {
-        display: none;
-    }
-}
+    .categories-scroll::-webkit-scrollbar { display: none; }
+    .category-card { min-width: 90px; padding: 12px; }
+    .category-icon { font-size: 2rem; }
+    .category-name { font-size: 0.8rem; }
 
-
-/* 4. Meal Cards Mobile Grid */
-@media (max-width: 600px) {
+    /* 5. Mobile Meal Cards (Horizontal Layout) */
     .meals-grid {
-        grid-template-columns: 1fr; /* Single column */
-        gap: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
-    
     .meal-card {
-        display: flex; /* Horizontal card for mobile? Or keep vertical? */
-        /* Let's try a horizontal layout for mobile to save vertical space? 
-           Actually, vertical cards are better for images. Let's optimize vertical. */
+        display: flex;
         flex-direction: row;
-        align-items: stretch;
-        height: 140px; /* Fixed height for consistency */
+        align-items: center;
+        height: 120px;
+        padding: 0;
+        overflow: hidden;
     }
     
     .meal-image {
-        width: 140px;
+        width: 120px;
         height: 100%;
-        aspect-ratio: auto; /* Override 1:1 */
         flex-shrink: 0;
     }
-    
-    .meal-content {
-        flex: 1;
-        padding: 0.8rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-width: 0; /* Fix flex text overflow */
+    .meal-image img {
+        object-fit: cover;
     }
-    
-    .meal-name {
-        font-size: 1rem;
-        margin-bottom: 0.2rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .meal-description {
-        font-size: 0.75rem;
-        -webkit-line-clamp: 2;
-        margin-bottom: 0.5rem;
-    }
-    
     .meal-image .meal-badge {
         font-size: 0.6rem;
         padding: 2px 6px;
-        top: 6px;
-        right: 6px;
+        top: 4px; right: 4px;
+    }
+
+    .meal-content {
+        flex: 1;
+        padding: 10px 14px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 0;
     }
     
-    /* Move Add Button to bottom right of content */
+    .meal-name {
+        font-size: 1rem; 
+        margin-bottom: 4px;
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+    }
+    .meal-description { display: none; } /* Hide desc on mobile list for cleaner look */
+    
     .meal-footer {
         margin-top: auto;
+        width: 100%;
     }
+    .meal-price { font-size: 1.1rem; }
+    .meal-add-btn span { display: none; } /* Icon only add button if needed */
     
-    .meal-price {
-        font-size: 1rem;
-    }
-    
-    /* Hide the large hero animation on mobile */
-    .hero::after {
-        display: none;
-    }
-}
-
-/* 5. Mobile Search Bar */
-@media (max-width: 768px) {
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1rem;
-    }
-    .search-container {
-        max-width: 100%;
-    }
-}
-
-/* 6. Footer Padding for Bottom Nav/Buttons */
-@media (max-width: 768px) {
-    .footer {
-        padding-bottom: 80px; /* Space for potential floating buttons if added later */
-    }
+    /* 6. Footer Adjustments */
+    .footer { padding-bottom: 90px; text-align: center; }
 }
