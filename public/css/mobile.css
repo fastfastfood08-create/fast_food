@@ -3,69 +3,141 @@
 ======================================== */
 
 /* 1. Header Cleanup for Phones */
-/* 1. Header Cleanup for Phones */
+/* 1. App-Like Mobile Header */
 @media (max-width: 768px) {
+    /* Fixed Height & Layout */
     .header {
-        padding: 0.75rem 0;
+        padding: 0;
+        height: 60px; /* Strict height */
+        display: flex;
+        align-items: center;
+        background: var(--secondary-dark);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     
     .header-content {
-        gap: 0.5rem;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
+        width: 100%;
+        gap: 0;
     }
     
-    /* Logo Adjustments */
+    /* Logo: Clean & Compact */
     .logo {
-        font-size: 1.1rem; 
-        gap: 6px;
-        flex: 0 0 auto; /* Don't shrink */
+        font-size: 1rem;
+        gap: 8px;
+        z-index: 10;
+        color: white; /* Ensure contrast on black */
     }
     .logo-icon {
         width: 28px;
         height: 28px;
     }
-    
-    /* Restaurant Status - Positioned better */
-    .restaurant-status {
-        padding: 4px 10px;
-        font-size: 0.75rem;
-        margin-right: auto; /* Push to left (rtl) or center gap */
-        margin-left: auto;
-        border-radius: 99px;
+    #logoName {
+        display: block; /* Show name */
+        font-weight: 700;
+        font-size: 1.1rem;
     }
-    .restaurant-status span:last-child {
-        display: none; 
+
+    /* Actions Group: Right Side (Left in RTL) */
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        opacity: 1; /* Force visible */
+        animation: none; /* Remove delay */
     }
-    .restaurant-status.open::after { content: 'مفتوح'; display: inline-block; margin-right: 4px; }
-    .restaurant-status.closed::after { content: 'مغلق'; display: inline-block; margin-right: 4px; }
-    
-    
-    /* Cart Button Compact - Circle Style */
-    .cart-btn {
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%; 
+
+    /* 1. "My Orders" Button -> Icon Only */
+    .header-actions .btn-secondary {
+        padding: 0 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        display: flex;
+        align-items: center;
         justify-content: center;
-        flex: 0 0 auto;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        min-width: unset; /* Override any min-width */
+        font-size: 0 !important; /* Hide native text */
+        box-shadow: none;
+    }
+    .header-actions .btn-secondary::after {
+        content: '📋';
+        font-size: 1.2rem;
+        display: block;
+    }
+    
+    /* 2. Cart Button -> Icon Only */
+    .cart-btn {
+        padding: 0 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: var(--gradient-primary);
         box-shadow: 0 4px 10px rgba(255, 107, 0, 0.3);
+        margin-left: 0;
+        position: relative;
     }
-    .cart-btn span:first-child { 
-        margin: 0;
+    .cart-btn span {
+        display: none; /* Hide all internal spans first */
+    }
+    .cart-btn::after {
+        content: '🛒';
         font-size: 1.2rem;
-    }
-    .cart-btn span:nth-child(2) { 
-        display: none;
+        color: white;
     }
     .cart-count {
-        top: -4px;
-        left: -4px; /* RTL flip: actually appears on top-left */
-        width: 20px;
-        height: 20px;
-        font-size: 0.7rem;
-        line-height: 20px;
-        border: 2px solid var(--secondary);
+        display: flex !important; /* Force show */
+        position: absolute;
+        top: -2px !important;
+        right: -2px !important; 
+        left: auto !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 0 !important;
+        font-size: 0.7rem !important;
+        background: var(--danger) !important;
+        border: 2px solid var(--secondary-dark) !important;
+        color: white !important;
+        padding: 0;
+        justify-content: center;
+    }
+    /* Active State for count */
+    .cart-count:empty, .cart-count:not(.has-items) {
+       display: none !important;
+    }
+    /* Force show if it has text (JS adds class has-items but manually checking content via CSS is hard, 
+       trusting .has-items class from JS) */
+    .cart-count.has-items {
+        display: flex !important;
+    }
+
+    /* Restaurant Status: Hide completely to save space on mobile */
+    .restaurant-status {
+        display: none !important; 
+    }
+}
+
+/* Global Padding Fix - CRITICAL */
+@media (max-width: 768px) {
+    body {
+        padding-top: 60px !important; /* Match header height */
+    }
+    /* Reset individual page paddings */
+    .hero, .cart-page, .my-orders-page {
+        padding-top: 25px !important; 
+        min-height: auto;
+    }
+    /* General Container Padding */
+    .container {
+        padding: 0 16px;
     }
 }
 
