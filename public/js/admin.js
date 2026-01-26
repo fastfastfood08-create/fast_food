@@ -792,7 +792,7 @@ function viewOrderDetails(orderId) {
 
     } else if (order.orderType === 'delivery' && order.address) {
         // Fallback for text address
-        const safeAddr = order.address.replace(/'/g, "\\'");
+        const safeAddr = order.address.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
         locationButtons = `
             <div class="location-actions">
                 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}" target="_blank" class="btn-location map" style="text-decoration:none;">
