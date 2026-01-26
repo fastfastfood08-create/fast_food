@@ -16,6 +16,9 @@ async function initializeApp() {
     loadRestaurantSettings();
 
     // تهيئة البيانات والانتظار حتى تكتمل
+    // عرض واجهة التحميل الوهمية (Skeleton) فوراً لإعطاء شعور بالسرعة
+    renderSkeletonLoading();
+
     if (typeof initializeData === 'function') {
         await initializeData();
     }
@@ -31,21 +34,41 @@ async function initializeApp() {
     
     // إعداد البحث
     setupSearch();
-
+    
     // إعداد تفاعل الرأس مع التمرير
     setupHeaderScroll();
-
-    // تحديث عداد السلة (بعد تحميل البيانات للتأكد من صحة الأسعار/التوفر)
-    if (typeof updateCartUI === 'function') {
-        updateCartUI();
-    }
     
-    // الاستماع لأي تحديثات مستقبلية للبيانات
-    document.addEventListener('data-ready', () => {
-        loadRestaurantSettings();
-        renderCategories();
-        renderMeals();
-    });
+    // إخفاء التحميل تدريجياً - تم ذلك عبر renderMeals الذي يستبدل المحتوى
+}
+
+// عرض واجهة التحميل (Skeleton)
+function renderSkeletonLoading() {
+    const container = document.getElementById('mealsContainer');
+    const catContainer = document.getElementById('categoriesContainer');
+    
+    if (catContainer && !catContainer.hasChildNodes()) {
+         catContainer.innerHTML = Array(5).fill(0).map(() => `
+            <div class="category-btn skeleton-cat"></div>
+        `).join('');
+    }
+
+    if (container) {
+        container.innerHTML = Array(6).fill(0).map((_, i) => `
+            <div class="meal-card skeleton-card" style="animation-delay: ${i * 0.1}s">
+                <div class="meal-image skeleton-image">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+                <div class="meal-content">
+                    <div class="skeleton-text title"></div>
+                    <div class="skeleton-text desc"></div>
+                    <div class="meal-footer">
+                        <div class="skeleton-text price"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
 }
 
 // تحميل إعدادات المطعم
@@ -235,9 +258,11 @@ function createMealCard(meal, index) {
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
                     : `<div class="meal-placeholder">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M8 12a4 4 0 0 0 8 0"></path>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <circle cx="12" cy="12" r="8"></circle>
+                            <path d="M3 8v5c0 2 2 3 2 3h1"></path>
+                            <line x1="4" y1="16" x2="4" y2="21"></line>
+                            <path d="M19 8v5c0 2-2 3-2 3h-1"></path>
+                            <line x1="20" y1="16" x2="20" y2="21"></line>
                         </svg>
                        </div>`
                 }
@@ -316,9 +341,11 @@ function openMealModal(mealId) {
                     ? `<img src="${meal.image}" alt="${meal.name}">` 
                     : `<div class="meal-placeholder-large">
                         <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M8 12a4 4 0 0 0 8 0"></path>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                             <circle cx="12" cy="12" r="8"></circle>
+                             <path d="M3 8v5c0 2 2 3 2 3h1"></path>
+                             <line x1="4" y1="16" x2="4" y2="21"></line>
+                             <path d="M19 8v5c0 2-2 3-2 3h-1"></path>
+                             <line x1="20" y1="16" x2="20" y2="21"></line>
                         </svg>
                        </div>`
                 }
