@@ -124,7 +124,7 @@ function renderCategories() {
     // إضافة زر "الكل"
     let html = `
         <button class="category-btn ${!currentCategory ? 'active' : ''}" onclick="filterByCategory(null)">
-            <span class="category-icon">🍽️</span>
+            <span class="category-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</span>
             <span class="category-name">الكل</span>
         </button>
     `;
@@ -189,7 +189,7 @@ function renderMeals() {
     if (meals.length === 0) {
         container.innerHTML = `
             <div class="no-meals">
-                <div class="no-meals-icon">🍽️</div>
+                <div class="no-meals-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</div>
                 <h3>لا توجد وجبات</h3>
                 <p>${searchQuery ? 'لم نجد وجبات تطابق بحثك' : 'لا توجد وجبات في هذه الفئة'}</p>
             </div>
@@ -233,7 +233,7 @@ function createMealCard(meal, index) {
             <div class="meal-image">
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
-                    : `<div class="meal-placeholder">🍽️</div>`
+                    : `<div class="meal-placeholder" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</div>`
                 }
             </div>
             <div class="meal-content">
@@ -308,7 +308,7 @@ function openMealModal(mealId) {
             <div class="meal-modal-image">
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}">` 
-                    : `<div class="meal-placeholder-large">🍽️</div>`
+                    : `<div class="meal-placeholder-large" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</div>`
                 }
                 ${meal.popular ? '<span class="meal-badge popular">⭐ مميز</span>' : ''}
             </div>
