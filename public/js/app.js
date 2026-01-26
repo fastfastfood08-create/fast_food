@@ -257,12 +257,10 @@ function createMealCard(meal, index) {
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
                     : `<div class="meal-placeholder">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="8"></circle>
-                            <path d="M3 8v5c0 2 2 3 2 3h1"></path>
-                            <line x1="4" y1="16" x2="4" y2="21"></line>
-                            <path d="M19 8v5c0 2-2 3-2 3h-1"></path>
-                            <line x1="20" y1="16" x2="20" y2="21"></line>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 4a9 9 0 0 0-9 9v2h18v-2a9 9 0 0 0-9-9"></path>
+                            <path d="M12 4V2"></path>
+                            <path d="M4 15h16v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"></path>
                         </svg>
                        </div>`
                 }
@@ -340,12 +338,10 @@ function openMealModal(mealId) {
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}">` 
                     : `<div class="meal-placeholder-large">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                             <circle cx="12" cy="12" r="8"></circle>
-                             <path d="M3 8v5c0 2 2 3 2 3h1"></path>
-                             <line x1="4" y1="16" x2="4" y2="21"></line>
-                             <path d="M19 8v5c0 2-2 3-2 3h-1"></path>
-                             <line x1="20" y1="16" x2="20" y2="21"></line>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 4a9 9 0 0 0-9 9v2h18v-2a9 9 0 0 0-9-9"></path>
+                            <path d="M12 4V2"></path>
+                            <path d="M4 15h16v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"></path>
                         </svg>
                        </div>`
                 }
