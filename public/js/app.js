@@ -233,7 +233,13 @@ function createMealCard(meal, index) {
             <div class="meal-image">
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
-                    : `<div class="meal-placeholder" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</div>`
+                    : `<div class="meal-placeholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M8 12a4 4 0 0 0 8 0"></path>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                        </svg>
+                       </div>`
                 }
             </div>
             <div class="meal-content">
@@ -308,7 +314,13 @@ function openMealModal(mealId) {
             <div class="meal-modal-image">
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}">` 
-                    : `<div class="meal-placeholder-large" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;">🍽️</div>`
+                    : `<div class="meal-placeholder-large">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M8 12a4 4 0 0 0 8 0"></path>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                        </svg>
+                       </div>`
                 }
                 ${meal.popular ? '<span class="meal-badge popular">⭐ مميز</span>' : ''}
             </div>
