@@ -62,88 +62,63 @@ let initPromise = null;
 // Initialization
 // ===================================
 
-const CACHE_KEY = 'app_cache_v2';
-
 async function initializeData() {
     if (initPromise) return initPromise;
     
     initPromise = (async () => {
-        // 1. Try Load from Cache (Fast Path)
-        const cached = localStorage.getItem(CACHE_KEY);
-        let hasCache = false;
-        
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                if (parsed.categories && parsed.meals) {
-                    appState.categories = parsed.categories;
-                    appState.meals = parsed.meals;
-                    appState.settings = { ...FALLBACK_DATA.settings, ...(parsed.settings || {}) };
-                    hasCache = true;
-                    console.log('⚡ Loaded data from cache');
-                    isDataInitialized = true;
-                }
-            } catch (e) {
-                console.warn('Cache parse failed', e);
-            }
-        }
+        try {
+            console.log('🔄 Initializing Data from Backend...');
+            
+            // 1. Load data in parallel
+            const [categories, meals, settings, orders] = await Promise.all([
+                ApiClient.getCategories().catch(err => {
+                    console.error('Failed to load categories', err);
+                    return null;
+                }),
+                ApiClient.getMeals().catch(err => {
+                    console.error('Failed to load meals', err);
+                    return null;
+                }),
+                ApiClient.getSettings().catch(err => {
+                     console.error('Failed to load settings', err);
+                     return null;
+                }),
+                ApiClient.getOrders().catch(err => {
+                    // Orders might fail for non-admin, just return empty
+                    return [];
+                })
+            ]);
+            
+            // 2. Update State with Fallback
+            // If API returns null/empty, use FALLBACK_DATA
+            
+            appState.categories = (categories && categories.length > 0) ? categories : FALLBACK_DATA.categories;
+            appState.meals = (meals && meals.length > 0) ? meals : FALLBACK_DATA.meals;
+            // For settings, merge fallback with API result (if any)
+            appState.settings = { ...FALLBACK_DATA.settings, ...(settings || {}) };
+            
+            // MERGE LOCAL DATA REMOVED - FULL CLOUD SYNC MODE
+            console.log('☁️ Syncing with Cloud Database...');
 
-        // 2. Define Background Fetch Logic
-        const fetchFreshData = async () => {
-            try {
-                console.log('🔄 Fetching fresh data...');
-                const [categories, meals, settings, orders] = await Promise.all([
-                    ApiClient.getCategories().catch(e => null),
-                    ApiClient.getMeals().catch(e => null),
-                    ApiClient.getSettings().catch(e => null),
-                    ApiClient.getOrders().catch(e => [])
-                ]);
 
-                // Update State
-                if (categories && categories.length > 0) appState.categories = categories;
-                else if (!hasCache && !appState.categories.length) appState.categories = FALLBACK_DATA.categories;
-
-                if (meals && meals.length > 0) appState.meals = meals;
-                else if (!hasCache && !appState.meals.length) appState.meals = FALLBACK_DATA.meals;
-
-                // Smart Merge Settings
-                appState.settings = { ...FALLBACK_DATA.settings, ...(appState.settings || {}), ...(settings || {}) };
-                if (orders) appState.orders = orders.map(o => normalizeOrder(o));
-
-                // Save to Cache
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    categories: appState.categories,
-                    meals: appState.meals,
-                    settings: appState.settings
-                }));
-                
-                isDataInitialized = true;
-                console.log('✅ Fresh data loaded');
-                
-                // Dispatch event to update UI with fresh data
-                document.dispatchEvent(new CustomEvent('data-ready'));
-                
-            } catch (error) {
-                console.error('❌ Background fetch failed', error);
-                if (!hasCache) {
-                   appState.categories = FALLBACK_DATA.categories;
-                   appState.meals = FALLBACK_DATA.meals;
-                   appState.settings = FALLBACK_DATA.settings;
-                   document.dispatchEvent(new CustomEvent('data-ready'));
-                }
-            }
-        };
-
-        // 3. Execution Flow
-        if (hasCache) {
-            // Trigger background fetch, but don't await it strictly for the return
-            // We return true immediately so the App renders the cached data
-            fetchFreshData(); 
-            return true; 
-        } else {
-            // No cache? Must wait.
-            await fetchFreshData();
+            // Polyfill orderNumber and normalize items for frontend compatibility
+            appState.orders = (appState.orders || []).map(o => normalizeOrder(o));
+            
+            isDataInitialized = true;
+            console.log('✅ Data Initialized', appState);
+            
+            // 3. Dispatch Event
+            document.dispatchEvent(new CustomEvent('data-ready'));
+            
             return true;
+        } catch (error) {
+            console.error('❌ Data Initialization Failed:', error);
+            // Even on fatal error, use fallback
+            appState.categories = FALLBACK_DATA.categories;
+            appState.meals = FALLBACK_DATA.meals;
+            appState.settings = FALLBACK_DATA.settings;
+            document.dispatchEvent(new CustomEvent('data-ready'));
+            return false;
         }
     })();
     

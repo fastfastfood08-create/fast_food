@@ -702,7 +702,12 @@ function renderOrders() {
                 
                 <div class="order-row-middle">
                     <div class="customer-info">
-                        <h4>${order.customerName}</h4>
+                        <h4>
+                            ${order.customerName}
+                            <span class="order-type-badge ${order.orderType === 'delivery' ? 'type-delivery' : 'type-dinein'}">
+                                ${order.orderType === 'delivery' ? '🛵 توصيل' : '🍽️ طاولة'}
+                            </span>
+                        </h4>
                         <p>
                             <span>📞 ${order.customerPhone}</span>
                             <span>⏰ ${new Date(order.createdAt).toLocaleTimeString('ar-DZ', {hour:'2-digit', minute:'2-digit'})}</span>
@@ -815,10 +820,21 @@ function viewOrderDetails(orderId) {
                         <span class="text">${order.customerPhone}</span>
                     </a>
                 </div>
+                
+                <div class="info-row">
+                    <span class="icon">${order.orderType === 'delivery' ? '🛵' : '🍽️'}</span>
+                    <span class="text" style="font-weight: bold; color: var(--primary);">
+                        ${order.orderType === 'delivery' ? 'طلب توصيل' : 'تناول في المطعم'}
+                    </span>
+                </div>
+
+                ${order.orderType === 'delivery' ? `
                 <div class="info-row">
                     <span class="icon">📍</span>
-                    <span class="text">${order.address || 'استلام من المطعم'}</span>
+                    <span class="text">${order.address || 'موقع محدد على الخريطة'}</span>
                 </div>
+                ` : ''}
+
                 ${locationButtons}
             </div>
 

@@ -2612,3 +2612,35 @@ input:focus + .slider {
     animation: pulse 1.5s infinite ease-in-out;
 }
 
+
+/* Order Type Badge */
+.order-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+.type-delivery {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+.type-dinein {
+    background-color: #fce7f3;
+    color: #db2777;
+    border: 1px solid #fbcfe8;
+}
+[data-theme="dark"] .type-delivery {
+    background-color: rgba(2, 132, 199, 0.2);
+    border-color: rgba(2, 132, 199, 0.4);
+}
+[data-theme="dark"] .type-dinein {
+    background-color: rgba(219, 39, 119, 0.2);
+    border-color: rgba(219, 39, 119, 0.4);
+}
+
