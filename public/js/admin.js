@@ -1332,9 +1332,12 @@ function openMealModal(mealId = null) {
                 const uploadLabel = document.querySelector('label[for="mealImageInput"]');
                 if(uploadLabel) uploadLabel.style.display = 'none';
                 
-                // Add Delete Button if not exists
-                if (!preview.querySelector('.btn-delete-image')) {
-                    const deleteBtn = document.createElement('button');
+                // CLEANUP: Remove any existing buttons (like edit button) and keep only image
+                const existingBtns = preview.querySelectorAll('button');
+                existingBtns.forEach(btn => btn.remove());
+
+                // Add Delete Button always
+                const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'btn-delete-image';
                     deleteBtn.innerHTML = '🗑️ حذف الصورة';
                     deleteBtn.type = 'button';
@@ -1357,7 +1360,8 @@ function openMealModal(mealId = null) {
                     // Styling handled in CSS, but let's append it
                     preview.appendChild(deleteBtn);
                     preview.style.position = 'relative'; // Ensure relative
-                }
+                
+                // Removed closing bracket of if check since we removed the check
             } else {
                  // No image, ensure upload button is visible
                  const uploadLabel = document.querySelector('label[for="mealImageInput"]');
