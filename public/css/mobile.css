@@ -4,11 +4,12 @@
 
 /* 1. Header Cleanup for Phones */
 /* 1. App-Like Mobile Header */
+/* 1. App-Like Mobile Header */
 @media (max-width: 768px) {
     /* Fixed Height & Layout */
     .header {
-        padding: 0;
-        height: 60px; /* Strict height */
+        padding: 0 16px; /* Horizontal padding for container */
+        height: 60px;
         display: flex;
         align-items: center;
         background: var(--secondary-dark);
@@ -16,37 +17,40 @@
     }
     
     .header-content {
-        display: flex;
+        display: flex; /* Use Flexbox for row */
         align-items: center;
-        justify-content: space-between;
+        justify-content: space-between; /* Maximum separation */
         width: 100%;
         gap: 0;
     }
     
-    /* Logo: Clean & Compact */
+    /* LEFT (RTL: Right): Logo */
     .logo {
-        font-size: 1rem;
+        display: flex;
+        align-items: center;
         gap: 8px;
         z-index: 10;
-        color: white; /* Ensure contrast on black */
+        color: white;
+        text-decoration: none;
+        flex-shrink: 0;
     }
     .logo-icon {
         width: 28px;
         height: 28px;
     }
     #logoName {
-        display: block; /* Show name */
-        font-weight: 700;
-        font-size: 1.1rem;
+        display: block;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: white;
     }
 
-    /* Actions Group: Right Side (Left in RTL) */
+    /* RIGHT (RTL: Left): Actions */
     .header-actions {
         display: flex;
         align-items: center;
         gap: 12px;
-        opacity: 1; /* Force visible */
-        animation: none; /* Remove delay */
+        flex-shrink: 0;
     }
 
     /* 1. "My Orders" Button -> Icon Only */
@@ -61,10 +65,12 @@
         background: rgba(255, 255, 255, 0.1) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
         color: white !important;
-        min-width: unset; /* Override any min-width */
-        font-size: 0 !important; /* Hide native text */
+        min-width: unset;
+        font-size: 0 !important;
         box-shadow: none;
+        transition: transform 0.2s;
     }
+    .header-actions .btn-secondary:active { transform: scale(0.95); }
     .header-actions .btn-secondary::after {
         content: '📋';
         font-size: 1.2rem;
@@ -84,17 +90,17 @@
         box-shadow: 0 4px 10px rgba(255, 107, 0, 0.3);
         margin-left: 0;
         position: relative;
+        transition: transform 0.2s;
     }
-    .cart-btn span {
-        display: none; /* Hide all internal spans first */
-    }
+    .cart-btn:active { transform: scale(0.95); }
+    .cart-btn span { display: none; }
     .cart-btn::after {
         content: '🛒';
         font-size: 1.2rem;
         color: white;
     }
     .cart-count {
-        display: flex !important; /* Force show */
+        display: flex !important;
         position: absolute;
         top: -2px !important;
         right: -2px !important; 
@@ -108,45 +114,25 @@
         color: white !important;
         padding: 0;
         justify-content: center;
+        align-items: center;
+        border-radius: 50%;
     }
-    /* Active State for count */
-    .cart-count:empty, .cart-count:not(.has-items) {
-       display: none !important;
-    }
-    /* Force show if it has text (JS adds class has-items but manually checking content via CSS is hard, 
-       trusting .has-items class from JS) */
-    .cart-count.has-items {
-        display: flex !important;
-    }
+    .cart-count:empty, .cart-count:not(.has-items) { display: none !important; }
+    .cart-count.has-items { display: flex !important; }
 
-    /* Restaurant Status: Hide completely to save space on mobile */
-    .restaurant-status {
-        display: none !important; 
-    }
+    .restaurant-status { display: none !important; }
 }
 
-/* Global Padding Fix - CRITICAL */
+/* Global Padding Fix */
 @media (max-width: 768px) {
     body {
-        padding-top: 60px !important; /* Match header height */
+        /* Ensure content starts AFTER the 60px header */
+        padding-top: 76px !important; /* 60px header + 16px gap */
     }
-    /* Reset individual page paddings */
-    .hero, .cart-page, .my-orders-page {
-        padding-top: 25px !important; 
-        min-height: auto;
-    }
-    /* General Container Padding */
-    .container {
-        padding: 0 16px;
-    }
-}
-
-
-/* 2. Hero Section Phones */
-@media (max-width: 768px) {
     .hero {
+        /* Remove extra padding that pushes content too far down or up */
+        padding-top: 0 !important; 
         min-height: auto;
-        padding-top: 100px;
         padding-bottom: 2rem;
         text-align: center;
     }
@@ -161,6 +147,9 @@
     .hero .btn {
         width: 100%;
         max-width: 280px;
+    }
+    .container {
+        padding: 0 16px;
     }
 }
 
