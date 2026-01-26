@@ -1111,7 +1111,12 @@ function printOrder(orderId) {
                 <div class="customer-block">
                     <div><strong>${order.customerName}</strong></div>
                     <div>${order.customerPhone}</div>
-                    ${order.address ? `<div style="margin-top:2px;">${order.address}</div>` : ''}
+                    ${order.address 
+                        ? `<div style="margin-top:2px;">${order.address}</div>` 
+                        : (order.orderType === 'delivery' && order.location 
+                            ? `<div style="margin-top:2px;">📍 موقع محدد على الخريطة<br><span style="font-size: 10px; color: #555;">(${order.location.lat.toFixed(5)}, ${order.location.lng.toFixed(5)})</span></div>` 
+                            : '')
+                    }
                 </div>
                 
                 ${order.notes ? `
