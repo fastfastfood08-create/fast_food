@@ -3,50 +3,69 @@
 ======================================== */
 
 /* 1. Header Cleanup for Phones */
+/* 1. Header Cleanup for Phones */
 @media (max-width: 768px) {
     .header {
-        padding: 0.5rem 0;
+        padding: 0.75rem 0;
     }
     
     .header-content {
         gap: 0.5rem;
+        justify-content: space-between;
     }
     
-    /* Shrink logo on phone */
+    /* Logo Adjustments */
     .logo {
-        font-size: 1.1rem;
+        font-size: 1.1rem; 
+        gap: 6px;
+        flex: 0 0 auto; /* Don't shrink */
     }
     .logo-icon {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
     }
     
-    /* Hide restaurant status on very small screens, or simplify it */
+    /* Restaurant Status - Positioned better */
     .restaurant-status {
-        padding: 4px 8px;
+        padding: 4px 10px;
         font-size: 0.75rem;
+        margin-right: auto; /* Push to left (rtl) or center gap */
+        margin-left: auto;
+        border-radius: 99px;
     }
     .restaurant-status span:last-child {
-        display: none; /* Hide text "Open/Closed" on mobile, keep dot or minimal text */
+        display: none; 
     }
-    .restaurant-status.open::after { content: 'مفتوح'; display: inline; }
-    .restaurant-status.closed::after { content: 'مغلق'; display: inline; }
+    .restaurant-status.open::after { content: 'مفتوح'; display: inline-block; margin-right: 4px; }
+    .restaurant-status.closed::after { content: 'مغلق'; display: inline-block; margin-right: 4px; }
     
     
-    /* Cart Button Compact */
+    /* Cart Button Compact - Circle Style */
     .cart-btn {
-        padding: 0.5rem 1rem;
-        gap: 0.5rem;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%; 
+        justify-content: center;
+        flex: 0 0 auto;
+        background: var(--gradient-primary);
+        box-shadow: 0 4px 10px rgba(255, 107, 0, 0.3);
     }
-    .cart-btn span:nth-child(2) { /* Hide "Cart" Text */
+    .cart-btn span:first-child { 
+        margin: 0;
+        font-size: 1.2rem;
+    }
+    .cart-btn span:nth-child(2) { 
         display: none;
     }
     .cart-count {
-        top: -5px;
-        left: -5px;
+        top: -4px;
+        left: -4px; /* RTL flip: actually appears on top-left */
         width: 20px;
         height: 20px;
         font-size: 0.7rem;
+        line-height: 20px;
+        border: 2px solid var(--secondary);
     }
 }
 
