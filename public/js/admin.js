@@ -1914,6 +1914,16 @@ function openCategoryModal(id = null) {
     const form = document.getElementById('categoryForm');
     form.reset();
     document.getElementById('categoryId').value = '';
+    document.getElementById('categoryIcon').value = '';
+    
+    // Reset preview
+    const preview = document.getElementById('categoryIconPreview');
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+    
+    // Reset file input
+    const iconInput = document.getElementById('categoryIconInput');
+    if (iconInput) iconInput.value = '';
     
     if (id) {
         const cat = getCategories().find(c => c.id === id);
@@ -1922,6 +1932,19 @@ function openCategoryModal(id = null) {
             document.getElementById('categoryName').value = cat.name;
             document.getElementById('categoryIcon').value = cat.icon;
             document.getElementById('categoryModalTitle').textContent = 'تعديل قسم';
+            
+            // Show icon preview if exists
+            if (cat.icon) {
+                if (cat.icon.includes('<svg') || cat.icon.includes('svg')) {
+                    // SVG icon
+                    preview.innerHTML = cat.icon;
+                    preview.style.display = 'flex';
+                } else {
+                    // Emoji icon
+                    preview.innerHTML = `<span style="font-size: 2rem;">${cat.icon}</span>`;
+                    preview.style.display = 'flex';
+                }
+            }
         }
     } else {
         document.getElementById('categoryModalTitle').textContent = 'إضافة قسم جديد';
@@ -1936,27 +1959,60 @@ function closeCategoryModal() {
 
 async function saveCategory(event) {
     event.preventDefault();
-    const id = document.getElementById('categoryId').value;
-    const name = document.getElementById('categoryName').value;
-    const icon = document.getElementById('categoryIcon').value || '📁';
     
-    if (id) {
-        // Update
-        await updateCategoryData({ id: parseInt(id), name, icon, active: true });
-        showToast('تم تحديث القسم', 'success');
-    } else {
-        // Create
-        await createCategoryData({
-            name,
-            icon,
-            order: getCategories().length + 1,
-            active: true
-        });
-        showToast('تم إضافة القسم', 'success');
+    const submitBtn = document.querySelector('#categoryForm button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.textContent = '⏳ جاري الحفظ...';
+        submitBtn.disabled = true;
     }
     
-    closeCategoryModal();
-    renderCategories();
+    try {
+        const id = document.getElementById('categoryId').value;
+        const name = document.getElementById('categoryName').value.trim();
+        const icon = document.getElementById('categoryIcon').value || '📁';
+        
+        // Validate
+        if (!name) {
+            showToast('يرجى إدخال اسم القسم', 'error');
+            return;
+        }
+        
+        if (id) {
+            // Update
+            const result = await updateCategoryData({ id: parseInt(id), name, icon, active: true });
+            if (result) {
+                showToast('تم تحديث القسم', 'success');
+            } else {
+                showToast('فشل في تحديث القسم', 'error');
+                return;
+            }
+        } else {
+            // Create
+            const result = await createCategoryData({
+                name,
+                icon,
+                order: getCategories().length + 1,
+                active: true
+            });
+            if (result) {
+                showToast('تم إضافة القسم بنجاح', 'success');
+            } else {
+                showToast('فشل في إضافة القسم', 'error');
+                return;
+            }
+        }
+        
+        closeCategoryModal();
+        renderCategories();
+    } catch (error) {
+        console.error('Save Category Error:', error);
+        showToast('حدث خطأ أثناء حفظ القسم: ' + (error.message || 'خطأ غير معروف'), 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.textContent = 'حفظ';
+            submitBtn.disabled = false;
+        }
+    }
 }
 
 function editCategory(id) {

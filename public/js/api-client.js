@@ -29,8 +29,8 @@ const ApiClient = {
     },
 
     // Categories
-    async getCategories() {
-        return this.request('/categories');
+    async getCategories(includeAll = false) {
+        return this.request(`/categories${includeAll ? '?all=true' : ''}`);
     },
 
     async saveCategory(category) {

@@ -70,8 +70,11 @@ async function initializeData() {
             console.log('🔄 Initializing Data from Backend...');
             
             // 1. Load data in parallel
+            // Check if we're in admin page to include all categories
+            const isAdminPage = window.location.pathname.includes('admin');
+            
             const [categories, meals, settings, orders] = await Promise.all([
-                ApiClient.getCategories().catch(err => {
+                ApiClient.getCategories(isAdminPage).catch(err => {
                     console.error('Failed to load categories', err);
                     return null;
                 }),
