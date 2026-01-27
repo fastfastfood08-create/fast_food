@@ -2123,23 +2123,7 @@ input:focus + .slider {
     cursor: pointer;
 }
 
-#mealImagePreview::after {
-    content: '✏️ تعديل';
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
 
-#mealImagePreview:hover::after {
-    opacity: 1;
-}
 
 /* ========================
    MEAL SIZES SECTION
