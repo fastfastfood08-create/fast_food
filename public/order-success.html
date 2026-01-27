@@ -102,6 +102,8 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Use z-index 0 to avoid covering dropdowns if any, but high enough to be seen -->
+                        <div id="trackingMap" style="height: 250px; width: 100%; border-radius: 12px; margin-top: 1rem; display: none; z-index: 1;"></div>
                     </div>
 
                     <!-- Actions -->
@@ -140,45 +142,126 @@
         </div>
     </main>
 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
     <!-- Scripts -->
+    <script>window.SKIP_AUTO_INIT = true;</script>
     <script src="js/api-client.js"></script>
     <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/cart.js"></script>
-    <script src="js/orders.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Ensure data is loaded
-            if (typeof initializeData === 'function') {
-                await initializeData();
-            }
+        let map = null;
 
-            const orderNumber = sessionStorage.getItem('lastOrderNumber');
-            const orderId = sessionStorage.getItem('lastOrderId');
-            
-            if (!orderNumber) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            // Display order number
-            document.getElementById('orderNumber').textContent = orderNumber;
-            
-            // Get order details
-            const order = getOrderByNumber(orderNumber);
-            if (order) {
-                renderOrderDetails(order);
-                updateStatusTracker(order.status);
+        document.addEventListener('DOMContentLoaded', async () => {
+             const orderNumber = sessionStorage.getItem('lastOrderNumber');
+             const orderId = sessionStorage.getItem('lastOrderId');
+             
+             if (!orderNumber && !orderId) {
+                 window.location.href = 'index.html';
+                 return;
+             }
+             
+             // Optimally Fetch Order
+             let order = null;
+             try {
+                // Try fetching specific order first
+                // If backend supports filtering by ID via query param
+                const targetId = orderId || orderNumber; // Fallback
                 
-                // Hide delivery step for dine-in orders
-                if (order.orderType !== 'delivery') {
-                    document.getElementById('deliveryStep').style.display = 'none';
+                // We use ApiClient directly to avoid loading all orders
+                const response = await ApiClient.request(`/orders?id=${targetId}`);
+                
+                if (Array.isArray(response)) {
+                    // JSON Server behavior: returns array
+                    // Find exact match (string vs int safe)
+                    order = response.find(o => o.id == targetId || o.orderNumber == orderNumber);
+                } else if (response && (response.id || response.orderNumber)) {
+                     // Single object return
+                     order = response;
                 }
-            }
-            
-            // Clear session storage (optional, maybe keep it a bit if they refresh)
-            // sessionStorage.removeItem('lastOrderNumber');
+                
+                // Normalize it
+                // We need normalizeOrder from data.js but it's internal. 
+                // We can accept raw or duplicate the simple normalization:
+                if (order) {
+                     if (!order.items) order.items = [];
+                     // Parse location
+                     if (typeof order.location === 'string' && order.location.startsWith('{')) {
+                         try { order.location = JSON.parse(order.location); } catch(e){}
+                     }
+                }
+
+             } catch (e) {
+                 console.error("Order fetch failed, trying fallback", e);
+             }
+
+             if (order) {
+                 document.getElementById('orderNumber').textContent = order.orderNumber || order.id || '---';
+                 renderOrderDetails(order);
+                 updateStatusTracker(order.status);
+                 
+                 // Handle Delivery & Map
+                 if (order.orderType === 'delivery') {
+                     document.getElementById('deliveryStep').style.display = 'flex';
+                     
+                     // Initialize Map if location exists
+                     if (order.location && order.location.lat && order.location.lng) {
+                          initTrackingMap(order.location.lat, order.location.lng);
+                     } else {
+                          // No location? Maybe show "No location provided" or hide map
+                          // User complained "Map didn't open", so let's show a placeholder or nothing.
+                          const mapEl = document.getElementById('trackingMap');
+                          if(mapEl) mapEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">لم يتم تحديد موقع محدد على الخريطة</div>';
+                     }
+                 } else {
+                     document.getElementById('deliveryStep').style.display = 'none';
+                     const mapEl = document.getElementById('trackingMap');
+                     if(mapEl) mapEl.style.display = 'none';
+                 }
+             } else {
+                 showToast('لم يتم العثور على الطلب', 'error');
+                 setTimeout(() => window.location.href = 'index.html', 3000);
+             }
         });
+
+        function initTrackingMap(lat, lng) {
+            const mapContainer = document.getElementById('trackingMap');
+            if (!mapContainer) return;
+            
+            mapContainer.style.display = 'block';
+            
+            // Artificial delay removed - User wants speed
+            map = L.map('trackingMap').setView([lat, lng], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // User Marker
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('📍 موقع التوصيل')
+                .openPopup();
+                
+            // Fake Driver Marker (Demo)
+            // Add a driver slightly away
+            const driverLat = parseFloat(lat) + 0.005;
+            const driverLng = parseFloat(lng) + 0.005;
+            
+            const driverIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/7541/7541900.png', // Scooter icon
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            
+            L.marker([driverLat, driverLng], {icon: driverIcon}).addTo(map)
+                .bindPopup('🛵 المندوب');
+                
+            // Fit bounds to show both
+            // map.fitBounds([[lat, lng], [driverLat, driverLng]], {padding: [50, 50]});
+        }
         
         function renderOrderDetails(order) {
             const container = document.getElementById('orderDetails');
@@ -225,24 +308,20 @@
         }
 
         function updateStatusTracker(currentStatus) {
-            // Simplified logic for demo visuals
             const steps = document.querySelectorAll('.status-step');
             steps.forEach(step => {
                 step.classList.remove('active', 'completed');
             });
             
-            // Map status to index
-            // new -> 0, preparing -> 1, ready -> 2, delivery -> 3, delivered -> 4
             let activeIndex = 0;
             if (currentStatus === 'preparing') activeIndex = 1;
             if (currentStatus === 'ready') activeIndex = 2;
-            if (currentStatus === 'delivery') activeIndex = 3;
+            if (currentStatus === 'onTheWay' || currentStatus === 'delivery') activeIndex = 3; // 'onTheWay' is standardized key
             if (currentStatus === 'delivered') activeIndex = 4;
             
             steps.forEach((step, index) => {
                 if (index < activeIndex) {
                     step.classList.add('active', 'completed');
-                    // Add checkmark if missing
                     if(!step.querySelector('.step-check')) {
                         const check = document.createElement('div');
                         check.className = 'step-check';

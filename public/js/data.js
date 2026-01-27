@@ -416,5 +416,7 @@ function saveCart(cart) {
 // ===================================
 // We don't auto-run initializeData() to allow hooking events first, 
 // OR we run it but UI must listen to 'data-ready'
-initializeData();
+if (!window.SKIP_AUTO_INIT) {
+    initializeData();
+}
 
