@@ -137,7 +137,7 @@ function renderMeals(categoryId = 'all') {
         return `
             <div class="meal-card-admin ${!meal.active ? 'meal-inactive' : ''}" onclick="openMealModal(${meal.id})">
                 <div class="meal-card-image">
-                    ${meal.image ? `<img src="${meal.image}" alt="${meal.name}">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#cbd5e1;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>'}
+                    ${meal.image ? `<img src="${meal.image}" alt="${meal.name}">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#cbd5e1;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 11h.01"/><path d="M11 15h.01"/><path d="M16.5 4a3 3 0 0 0-2.83 2h-3.34a3 3 0 0 0-2.83-2A3 3 0 0 0 4.5 7v.29A13 13 0 0 0 12 20a13 13 0 0 0 7.5-12.71V7a3 3 0 0 0-3-3z"/></svg></div>'}
                 </div>
                 <div class="meal-card-content">
                     <div class="meal-header">

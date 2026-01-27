@@ -223,7 +223,7 @@ function renderMeals() {
         container.innerHTML = `
             <div class="no-meals">
                 <div class="no-meals-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="8" x2="14" y2="14"></line><line x1="14" y1="8" x2="8" y2="14"></line></svg>
                 </div>
                 <h3>لا توجد وجبات</h3>
                 <p>${searchQuery ? 'لم نجد وجبات تطابق بحثك' : 'لا توجد وجبات في هذه الفئة'}</p>
@@ -269,15 +269,11 @@ function createMealCard(meal, index) {
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
                     : `<div class="meal-placeholder">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 3C12 3 13.5 3.5 13.5 5C13.5 6.5 12 7 12 7" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M16 4C16 4 17.5 4.5 17.5 6C17.5 7.5 16 8 16 8" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M8 5C8 5 9.5 5.5 9.5 7C9.5 8.5 8 9 8 9" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M12 10C7.58172 10 4 13.5817 4 18H20C20 13.5817 16.4183 10 12 10Z" fill="#F8FAFC" stroke="#64748B" stroke-width="1.5"/>
-                            <path d="M12 10V8.5" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="12" cy="7.5" r="1.5" fill="#64748B"/>
-                            <path d="M3 18H21" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 11h.01"/>
+                                <path d="M11 15h.01"/>
+                                <path d="M16.5 4a3 3 0 0 0-2.83 2h-3.34a3 3 0 0 0-2.83-2A3 3 0 0 0 4.5 7v.29A13 13 0 0 0 12 20a13 13 0 0 0 7.5-12.71V7a3 3 0 0 0-3-3z"/>
+                            </svg>
                        </div>`
                 }
             </div>
@@ -354,15 +350,11 @@ function openMealModal(mealId) {
                 ${meal.image 
                     ? `<img src="${meal.image}" alt="${meal.name}">` 
                     : `<div class="meal-placeholder-large">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 3C12 3 13.5 3.5 13.5 5C13.5 6.5 12 7 12 7" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M16 4C16 4 17.5 4.5 17.5 6C17.5 7.5 16 8 16 8" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M8 5C8 5 9.5 5.5 9.5 7C9.5 8.5 8 9 8 9" stroke="#FF6B00" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M12 10C7.58172 10 4 13.5817 4 18H20C20 13.5817 16.4183 10 12 10Z" fill="#F8FAFC" stroke="#64748B" stroke-width="1.5"/>
-                            <path d="M12 10V8.5" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="12" cy="7.5" r="1.5" fill="#64748B"/>
-                            <path d="M3 18H21" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 11h.01"/>
+                                <path d="M11 15h.01"/>
+                                <path d="M16.5 4a3 3 0 0 0-2.83 2h-3.34a3 3 0 0 0-2.83-2A3 3 0 0 0 4.5 7v.29A13 13 0 0 0 12 20a13 13 0 0 0 7.5-12.71V7a3 3 0 0 0-3-3z"/>
+                            </svg>
                        </div>`
                 }
                 ${meal.popular ? '<span class="meal-badge popular"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> مميز</span>' : ''}
