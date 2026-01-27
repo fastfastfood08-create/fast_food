@@ -1717,42 +1717,43 @@ button, input { font-family: inherit; }
   .meal-card {
     display: flex; /* Horizontal Layout for Mobile */
     flex-direction: row;
-    align-items: flex-start; /* Align top, allow content to dictate height */
+    align-items: stretch; /* Stretch children to fill card height */
     padding: 12px;
     gap: 12px;
-    min-height: 110px; /* Ensure minimum height */
-    height: auto;
+    min-height: 110px;
+    height: auto; /* Allow growth */
   }
   
   /* Vertical stack for content */
   .meal-content {
-    padding: 0 0 0 4px; /* Slight left padding */
+    padding: 2px 0 2px 4px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Start from top */
+    /* justify-content: space-between; removed to rely on margin-top: auto */
     min-width: 0;
-    height: 100%;
   }
   
   .meal-name { 
     font-size: 1rem; 
-    margin: 0 0 8px 0; /* Clear margins */
+    margin: 0 0 4px 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.4;
-    white-space: normal; /* Force wrap */
+    white-space: normal;
+    flex-shrink: 0; /* CRITICAL: Prevent name from disappearing */
   }
   
   .meal-description { display: none; }
   
-  /* Push footer to bottom of content if needed, or just flow */
+  /* Push footer and ensure visibility */
   .meal-footer { 
     margin-top: auto; 
     width: 100%;
+    padding-top: 4px;
   }
   
   /* Modals - Bottom Sheet Style or Full Width */
