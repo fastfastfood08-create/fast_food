@@ -1,3 +1,0 @@
-STARTING 
-git version 2.52.0.windows.1
-ENDING 
