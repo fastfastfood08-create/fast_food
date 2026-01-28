@@ -2751,12 +2751,14 @@ input:focus + .slider {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: rgba(15, 23, 42, 0.85); /* Dark semi-transparent */
-    backdrop-filter: blur(15px); /* Strong blur for premium feel */
+    /* Solid Background - Opaque & Premium */
+    background: #0f172a; 
+    /* Subtle gradient to look nice but remains solid */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     display: flex; /* Visible by default for initial load */
     align-items: center;
     justify-content: center;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .rocket-loader-anim {
