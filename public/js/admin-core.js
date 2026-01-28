@@ -66,8 +66,9 @@ function setupAdminNavigation() {
 async function spaNavigate(url, pushState = true) {
     if (window.location.pathname.endsWith(url)) return;
     
-    // 1. Show Lightweight SPA Loader (Instant Feedback)
-    showSpaLoader();
+    // 1. Professional Transition: Dim & Desaturate current content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.classList.add('is-loading');
 
     try {
         const response = await fetch(url);
@@ -91,10 +92,8 @@ async function spaNavigate(url, pushState = true) {
 
         // 6. Swap Content
         const newMainContent = doc.querySelector('.main-content');
-        const currentMainContent = document.querySelector('.main-content');
-        
-        if (newMainContent && currentMainContent) {
-            currentMainContent.innerHTML = newMainContent.innerHTML;
+        if (newMainContent && mainContent) {
+            mainContent.innerHTML = newMainContent.innerHTML;
             window.scrollTo(0, 0);
         } else {
             // Fallback: If structure doesn't match, force full reload
@@ -153,39 +152,13 @@ async function spaNavigate(url, pushState = true) {
         console.error('Navigation error:', error);
         window.location.href = url;
     } finally {
-        // Hide Loader
-        hideSpaLoader();
-    }
-}
-
-/**
- * Lightweight SPA Loader Controllers
- */
-function ensureSpaLoader() {
-    let loader = document.getElementById('spa-loader');
-    if (!loader) {
-        loader = document.createElement('div');
-        loader.id = 'spa-loader';
-        loader.innerHTML = '<div class="simple-spinner"></div>';
-        document.body.appendChild(loader);
-    }
-    return loader;
-}
-
-function showSpaLoader() {
-    const loader = ensureSpaLoader();
-    // Force reflow
-    loader.offsetHeight;
-    loader.classList.add('active');
-}
-
-function hideSpaLoader() {
-    const loader = document.getElementById('spa-loader');
-    if (loader) {
-        // Small buffer to prevent flickering
-        setTimeout(() => {
-            loader.classList.remove('active');
-        }, 100);
+        // Remove dimming effect
+        if (mainContent) {
+            // Small buffer for smoothness
+            setTimeout(() => {
+                mainContent.classList.remove('is-loading');
+            }, 50);
+        }
     }
 }
 

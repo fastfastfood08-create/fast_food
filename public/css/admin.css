@@ -2748,51 +2748,34 @@ input:focus + .slider {
    PAGE LOADER - ROCKET ANIMATION
    ======================== */
 /* ========================
-   LIGHTWEIGHT SPA LOADER (Clean & Fast)
+   PROFESSIONAL FADE TRANSITION (No Extra Elements)
    ======================== */
 
-#spa-loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    /* Match body bg to feel native */
-    background-color: var(--bg-body, #F3F4F6); 
-    z-index: 99; /* Below Sidebar (100) */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
+/* Hide legacy loaders */
+#spa-loader { display: none !important; }
 
-[data-theme="dark"] #spa-loader {
-    background-color: var(--bg-body, #000000);
-}
-
-#spa-loader.active {
+/* 
+   Main Content Transition 
+   -----------------------
+   A pure, lightweight fade effect.
+   No movement, no spinners, no blocking.
+   Just a subtle dim to indicate "Processing".
+*/
+.main-content {
+    will-change: opacity, filter;
+    transition: opacity 0.25s ease-out, filter 0.25s ease-out;
     opacity: 1;
-    pointer-events: all;
+    filter: grayscale(0);
 }
 
-/* Minimal Spinner */
-.simple-spinner {
-    width: 45px;
-    height: 45px;
-    border: 3px solid rgba(249, 115, 22, 0.1);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: simpleSpin 0.8s linear infinite;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+.main-content.is-loading {
+    opacity: 0.6; /* Dim slightly */
+    filter: grayscale(100%); /* Elegant desaturation */
+    pointer-events: none; /* Prevent clicks while loading */
+    cursor: wait;
 }
 
-@keyframes simpleSpin {
-    to { transform: rotate(360deg); }
-}
-
-/* Ensure Sidebar stays above loader */
+/* Ensure Sidebar stays stable & sharp */
 .sidebar {
     z-index: 100;
 }
