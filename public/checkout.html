@@ -95,38 +95,36 @@
                                            onchange="toggleOrderType('delivery')">
                                     <div class="radio-card-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 64 64" fill="none">
-                                            <!-- Shadow -->
-                                            <ellipse cx="32" cy="56" rx="20" ry="3" fill="#000" opacity="0.15"/>
+                                            <!-- Road/Shadow -->
+                                            <path d="M4 56 H60" stroke="#E5E7EB" stroke-width="2" stroke-linecap="round"/>
                                             
-                                            <!-- Rear Wheel -->
-                                            <circle cx="16" cy="46" r="8" fill="#374151"/>
-                                            <circle cx="16" cy="46" r="4" fill="#9CA3AF"/>
-                                            <circle cx="16" cy="46" r="2" fill="#E5E7EB"/>
+                                            <!-- Back Wheel -->
+                                            <circle cx="14" cy="48" r="7" fill="#374151" stroke="#1F2937" stroke-width="2"/>
+                                            <circle cx="14" cy="48" r="3" fill="#9CA3AF"/>
                                             
                                             <!-- Front Wheel -->
-                                            <circle cx="48" cy="46" r="8" fill="#374151"/>
-                                            <circle cx="48" cy="46" r="4" fill="#9CA3AF"/>
-                                            <circle cx="48" cy="46" r="2" fill="#E5E7EB"/>
+                                            <circle cx="50" cy="48" r="7" fill="#374151" stroke="#1F2937" stroke-width="2"/>
+                                            <circle cx="50" cy="48" r="3" fill="#9CA3AF"/>
                                             
-                                            <!-- Body Main -->
-                                            <path d="M16 46 L24 24 L44 24 L48 46" stroke="#EF4444" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M22 30 H42" stroke="#DC2626" stroke-width="4"/>
+                                            <!-- Bike Frame Body -->
+                                            <path d="M14 48 L22 30 H40 L46 48" fill="#EF4444" stroke="#B91C1C" stroke-width="2" stroke-linejoin="round"/>
+                                            <path d="M22 30 L18 20" stroke="#374151" stroke-width="3" stroke-linecap="round"/> <!-- Handlebar stem towards back a bit? No, fork. -->
+                                            <path d="M50 48 L44 26 L40 22 H48" stroke="#374151" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/> <!-- Handlebars -->
                                             
                                             <!-- Seat -->
-                                            <path d="M24 24 H36" stroke="#1F2937" stroke-width="6" stroke-linecap="round"/>
+                                            <path d="M20 30 H32" stroke="#1F2937" stroke-width="4" stroke-linecap="round"/>
                                             
-                                            <!-- Handlebars -->
-                                            <path d="M42 24 L46 16" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
-                                            <circle cx="46" cy="16" r="2" fill="#374151"/>
+                                            <!-- Rear Basket (Wire style) -->
+                                            <path d="M6 30 H18 L16 40 H8 Z" fill="none" stroke="#D97706" stroke-width="2"/>
+                                            <path d="M8 30 L9 40 M11 30 L11 40 M13 30 L13 40 M15 30 L15 40" stroke="#D97706" stroke-width="1"/>
+                                            <path d="M6 33 H17 M7 37 H16" stroke="#D97706" stroke-width="1"/>
                                             
-                                            <!-- Delivery Box 3D -->
-                                            <path d="M10 16 H24 V28 H10 Z" fill="#F59E0B"/>
-                                            <path d="M10 16 L14 12 H28 L24 16 Z" fill="#FCD34D"/>
-                                            <path d="M24 16 L28 12 V24 L24 28 Z" fill="#D97706"/>
+                                            <!-- Food in Basket -->
+                                            <circle cx="10" cy="26" r="3" fill="#FCD34D" stroke="#D97706" stroke-width="1"/>
+                                            <path d="M13 22 L15 30" stroke="#10B981" stroke-width="2"/> <!-- Baguette/Greens? -->
                                             
-                                            <!-- Speed Lines -->
-                                            <path d="M4 36 H12" stroke="#E5E7EB" stroke-width="2" stroke-linecap="round"/>
-                                            <path d="M2 40 H8" stroke="#E5E7EB" stroke-width="2" stroke-linecap="round"/>
+                                            <!-- Headlight beam -->
+                                            <path d="M48 24 L56 26" stroke="#FEF3C7" stroke-width="2" stroke-dasharray="2 2"/>
                                         </svg>
                                     </div>
                                     <div class="radio-card-title">توصيل</div>
