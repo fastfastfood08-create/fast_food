@@ -94,11 +94,21 @@
                                     <input type="radio" name="orderType" value="delivery" checked 
                                            onchange="toggleOrderType('delivery')">
                                     <div class="radio-card-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
-                                            <path d="M19 16H22L20 10H17V16Z" fill="#F87171" stroke="#DC2626" stroke-width="1.5"/>
-                                            <rect x="2" y="8" width="15" height="8" rx="1" fill="#FCA5A5" stroke="#DC2626" stroke-width="1.5"/>
-                                            <circle cx="6" cy="17" r="2" fill="#1F2937" stroke="#DC2626" stroke-width="1.5"/>
-                                            <circle cx="19" cy="17" r="2" fill="#1F2937" stroke="#DC2626" stroke-width="1.5"/>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
+                                            <!-- Bike Body -->
+                                            <path d="M5 16L3 12H7L5 16Z" fill="#EF4444"/>
+                                            <path d="M19 13C19 13 16 11 16 9C16 7 17 5 17 5L19 7H21L19 13Z" fill="#EF4444"/>
+                                            <path d="M5 16H19" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/>
+                                            <!-- Wheels -->
+                                            <circle cx="5.5" cy="17.5" r="2.5" fill="#1F2937" stroke="#374151" stroke-width="1.5"/>
+                                            <circle cx="18.5" cy="17.5" r="2.5" fill="#1F2937" stroke="#374151" stroke-width="1.5"/>
+                                            <!-- Delivery Box -->
+                                            <rect x="12" y="10" width="6" height="5" rx="1" fill="#FCD34D" stroke="#F59E0B" stroke-width="1"/>
+                                            <!-- Wind -->
+                                            <path d="M1 14H3" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+                                            <path d="M2 16H3" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+                                            <!-- Rider Head (Abstract) -->
+                                            <circle cx="16" cy="6" r="1.5" fill="#374151"/>
                                         </svg>
                                     </div>
                                     <div class="radio-card-title">توصيل</div>
@@ -109,10 +119,17 @@
                                     <input type="radio" name="orderType" value="dineIn" 
                                            onchange="toggleOrderType('dineIn')">
                                     <div class="radio-card-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
-                                            <path d="M4 20H20" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
-                                            <path d="M6 20V8L10 5L14 8V20" stroke="#F59E0B" stroke-width="2" stroke-linejoin="round"/>
-                                            <path d="M16 20V12C16 10 17 9 18 9V20" stroke="#78350F" stroke-width="2" fill="#FCD34D"/>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
+                                            <!-- Tray -->
+                                            <rect x="2" y="18" width="20" height="2" rx="1" fill="#9CA3AF"/>
+                                            <!-- Drink -->
+                                            <path d="M16 11H20L19 17H17L16 11Z" fill="#3B82F6" opacity="0.8"/>
+                                            <line x1="18" y1="9" x2="19" y2="13" stroke="#F87171" stroke-width="1.5" stroke-linecap="round"/>
+                                            <!-- Covered Meal (Dome) -->
+                                            <path d="M4 17H14V16C14 12 12 9 9 9C6 9 4 12 4 16V17Z" fill="#FCD34D" stroke="#F59E0B" stroke-width="1.5"/>
+                                            <circle cx="9" cy="8" r="1" fill="#F59E0B"/>
+                                            <!-- Plate line -->
+                                            <line x1="4" y1="17" x2="14" y2="17" stroke="#B45309" stroke-width="1.5"/>
                                         </svg>
                                     </div>
                                     <div class="radio-card-title">حضور</div>
