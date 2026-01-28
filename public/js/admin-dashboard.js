@@ -3,9 +3,14 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Only load what we need for dashboard
+    // 1. Instant Render (Cached Data or Skeletons)
+    // This ensures "Card and Curve" appear immediately even if data is stale or empty
+    initDashboard();
+
+    // 2. Refresh with Fresh Data
     // We need Orders (for stats), Settings (for formatting), Meals (maybe for names if missing in orders)
     initializeData({ orders: true, settings: true, meals: true }).then(() => {
+        // Re-render to show latest numbers
         initDashboard();
     });
 });
