@@ -31,9 +31,48 @@ document.addEventListener('DOMContentLoaded', () => {
             renderOrders();
         });
     });
+
+    // Setup Search and Date Filters
+    const searchInput = document.getElementById('orderSearchInput');
+    const dateInput = document.getElementById('orderDateFilter');
+    const btnReset = document.getElementById('btnResetFilters');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentSearchQuery = searchInput.value.trim().toLowerCase();
+            renderOrders();
+        });
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener('change', () => {
+            currentDateFilter = dateInput.value;
+            renderOrders();
+        });
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', async () => {
+            // Also refresh data from server
+            if (typeof refreshOrders === 'function') {
+                showToast('جاري تحديث البيانات...', 'info');
+                await refreshOrders();
+            }
+            // Clear filters but keep tab if needed? 
+            // Usually reset means back to defaults
+            searchInput.value = '';
+            dateInput.value = '';
+            currentSearchQuery = '';
+            currentDateFilter = '';
+            renderOrders();
+            showToast('تم تحديث البيانات وإعادة تعيين التصفية', 'success');
+        });
+    }
 });
 
 let currentOrderFilter = 'new'; // 'new', 'preparing', 'ready', 'delivered', 'cancelled', 'all'
+let currentSearchQuery = '';
+let currentDateFilter = '';
 
 function renderOrders() {
     const container = document.getElementById('ordersList');
@@ -51,9 +90,26 @@ function renderOrders() {
         }
     });
     
-    // Filter
+    // 1. Filter by Status
     if (currentOrderFilter !== 'all') {
         orders = orders.filter(o => o.status === currentOrderFilter);
+    }
+
+    // 2. Filter by Search Query (Name or Phone)
+    if (currentSearchQuery) {
+        orders = orders.filter(o => 
+            (o.customerName && o.customerName.toLowerCase().includes(currentSearchQuery)) ||
+            (o.customerPhone && o.customerPhone.includes(currentSearchQuery)) ||
+            (o.orderNumber && o.orderNumber.toString().includes(currentSearchQuery))
+        );
+    }
+
+    // 3. Filter by Date
+    if (currentDateFilter) {
+        orders = orders.filter(o => {
+            const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
+            return orderDate === currentDateFilter;
+        });
     }
     
     // Check Alerts (Moved from dashboard logic if we want alerts here too)
