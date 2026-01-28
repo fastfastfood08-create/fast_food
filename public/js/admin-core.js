@@ -75,7 +75,10 @@ async function spaNavigate(url, pushState = true) {
             history.pushState({ url }, doc.title, url);
         }
 
-        // 4. Swap Content
+        // 5. Inject CSS explicitly (Fix for Settings/Dashboard designs)
+        await injectMissingStyles(doc);
+
+        // 6. Swap Content
         const newMainContent = doc.querySelector('.main-content');
         const currentMainContent = document.querySelector('.main-content');
         
@@ -88,16 +91,16 @@ async function spaNavigate(url, pushState = true) {
             return;
         }
 
-        // 5. Swap Modals
+        // 7. Swap Modals
         document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
         doc.querySelectorAll('.modal-overlay').forEach(m => {
             document.body.appendChild(m);
         });
 
-        // 6. Highlight active sidebar item
+        // 8. Highlight active sidebar item
         highlightSidebar();
 
-        // 7. Load and Execute Page-Specific Scripts
+        // 9. Load and Execute Page-Specific Scripts
         const scripts = doc.querySelectorAll('script');
         for (const script of scripts) {
             if (script.src && script.src.includes('admin-') && !script.src.includes('admin-core.js')) {
@@ -136,6 +139,45 @@ async function spaNavigate(url, pushState = true) {
             }
         }, 300);
     }
+}
+
+/**
+ * Detects and injects new CSS files from the fetched page
+ */
+function injectMissingStyles(doc) {
+    return new Promise((resolve) => {
+        const newLinks = doc.querySelectorAll('link[rel="stylesheet"]');
+        const currentLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.getAttribute('href'));
+        
+        const loadPromises = [];
+
+        newLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            // If stylesheet is not present, add it
+            if (href && !currentLinks.some(current => current.includes(href))) {
+                const newLink = document.createElement('link');
+                newLink.rel = 'stylesheet';
+                newLink.href = href;
+                
+                // Add promise to wait for loading (optional but smoother)
+                const p = new Promise(r => {
+                    newLink.onload = r;
+                    newLink.onerror = r; // Proceed anyway on error
+                });
+                loadPromises.push(p);
+                
+                document.head.appendChild(newLink);
+            }
+        });
+
+        // Resolve when new critical CSS is loaded (timeout 500ms to avoid hanging)
+        if (loadPromises.length > 0) {
+            Promise.all(loadPromises).finally(resolve);
+            setTimeout(resolve, 500);
+        } else {
+            resolve();
+        }
+    });
 }
 
 /**
