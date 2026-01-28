@@ -284,9 +284,10 @@ function createMealCard(meal, index) {
                     ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` 
                     : `<div class="meal-placeholder">
                             <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M15 11h.01"/>
-                                <path d="M11 15h.01"/>
-                                <path d="M16.5 4a3 3 0 0 0-2.83 2h-3.34a3 3 0 0 0-2.83-2A3 3 0 0 0 4.5 7v.29A13 13 0 0 0 12 20a13 13 0 0 0 7.5-12.71V7a3 3 0 0 0-3-3z"/>
+                                <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <path d="M19 8V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v3" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <circle cx="12" cy="14" r="3" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                <path d="M9 13s.5-2 3-2 3 2 3 2" stroke="#cbd5e1" stroke-width="1.5" opacity="0.6"/>
                             </svg>
                        </div>`
                 }
