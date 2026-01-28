@@ -223,7 +223,21 @@ function renderMeals() {
         container.innerHTML = `
             <div class="no-meals">
                 <div class="no-meals-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="8" x2="14" y2="14"></line><line x1="14" y1="8" x2="8" y2="14"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Plate -->
+                        <circle cx="12" cy="12" r="9" stroke="#E5E7EB" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="6" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="2 2"/>
+                        
+                        <!-- Fork (Left, slightly tilted) -->
+                        <path d="M7 6V11C7 12 8 13 8 13H5C5 13 6 12 6 11V6" stroke="#9CA3AF" stroke-width="1.5"/>
+                        <line x1="6.5" y1="6" x2="6.5" y2="10" stroke="#9CA3AF"/>
+                        <line x1="5.5" y1="13" x2="5.5" y2="18" stroke="#9CA3AF" stroke-width="1.5"/>
+                        
+                        <!-- Spoon (Right, slightly tilted) -->
+                        <path d="M17 18V13C17 13 19 11 19 8C19 6 18 5 17 5C16 5 15 6 15 8C15 11 17 13 17 13Z" stroke="#9CA3AF" stroke-width="1.5"/>
+                        
+
+                    </svg>
                 </div>
                 <h3>لا توجد وجبات</h3>
                 <p>${searchQuery ? 'لم نجد وجبات تطابق بحثك' : 'لا توجد وجبات في هذه الفئة'}</p>
