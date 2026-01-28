@@ -2600,54 +2600,25 @@ input:focus + .slider {
 /* ========================
    PAGE LOADER - ELEGANT PULSE TRANSITION
    ======================== */
+/* ========================
+   PAGE TRANSITIONS - INSTANT
+   ======================== */
 .page-loader {
-    position: fixed;
-    inset: 0;
-    z-index: 99999; /* Max z-index */
-    background: #0f172a; /* Deep dark background */
-    display: none; /* Hidden by default, JS toggles it */
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-/* Spinner as a modern pulse */
-.loader-spinner {
-    display: block !important;
-    width: 60px;
-    height: 60px;
-    background: var(--primary);
-    border-radius: 50%;
-    animation: loaderPulse 1.5s ease-in-out infinite;
-    border: none;
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
-}
-
-@keyframes loaderPulse {
-    0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
-    }
-    70% {
-        transform: scale(1.1);
-        box-shadow: 0 0 0 20px rgba(249, 115, 22, 0);
-    }
-    100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
-    }
-}
-
-/* Hide text */
-.loader-content p {
     display: none !important;
 }
 
-/* RESET Previous Animations */
-.main-content, .nav-item {
-    animation: none;
+/* No animations for main content - Instant Show */
+.main-content {
     opacity: 1;
     transform: none;
+    animation: none !important;
+}
+
+/* No animations for sidebar items - Instant Show */
+.nav-item {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
 }
 
 
