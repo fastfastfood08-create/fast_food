@@ -53,12 +53,33 @@
             </header>
 
             <div class="content-wrapper">
-                <div style="text-align: center; padding: 50px; background: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                
+                <!-- Ratings Overview -->
+                <div class="stats-grid-row" style="margin-bottom: 30px;">
+                    <div class="stat-card-soft">
+                        <div class="stat-icon-soft" style="background: #FEF3C7; color: #D97706;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="avgRating">0.0</div>
+                            <div class="stat-label">متوسط التقييم</div>
+                        </div>
                     </div>
-                    <h3>قريباً...</h3>
-                    <p>نظام التقييمات قيد التطوير وسيتاح في التحديث القادم.</p>
+                    
+                    <div class="stat-card-soft">
+                        <div class="stat-icon-soft" style="background: #DBEAFE; color: #2563EB;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalRatings">0</div>
+                            <div class="stat-label">عدد التقييمات</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ratings List -->
+                <div id="ratingsGrid" class="ratings-grid">
+                    <!-- Populated by JS -->
                 </div>
             </div>
         </main>
@@ -75,8 +96,107 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Load orders to see if there are ratings
             await initializeData({ orders: true });
+            renderRatings();
             markRatingsAsSeen();
+            
+            // Listen for updates
+            document.addEventListener('orders-updated', () => {
+                renderRatings();
+                markRatingsAsSeen();
+            });
         });
+
+        function renderRatings() {
+            const container = document.getElementById('ratingsGrid');
+            const avgEl = document.getElementById('avgRating');
+            const totalEl = document.getElementById('totalRatings');
+            
+            if (!container) return;
+            
+            const orders = getOrders();
+            // Filter orders that have valid ratings
+            const ratedOrders = orders.filter(o => o.rating && o.rating > 0).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            // Update Stats
+            if (ratedOrders.length > 0) {
+                const total = ratedOrders.length;
+                const sum = ratedOrders.reduce((acc, curr) => acc + parseFloat(curr.rating), 0);
+                const avg = (sum / total).toFixed(1);
+                
+                avgEl.innerText = avg;
+                totalEl.innerText = total;
+            } else {
+                avgEl.innerText = '0.0';
+                totalEl.innerText = '0';
+            }
+
+            if (ratedOrders.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: 20px; border: 1px dashed #e5e7eb;">
+                        <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        </div>
+                        <h3 style="color: #374151; font-weight: 700; margin-bottom: 8px;">لا توجد تقييمات حتى الآن</h3>
+                        <p style="color: #6b7280;">ستظهر تقييمات العملاء هنا بمجرد وصولها.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = ratedOrders.map(order => {
+                const stars = generateStars(order.rating);
+                const date = new Date(order.createdAt).toLocaleDateString('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' });
+                const customerName = order.customerName || 'عميل مجهول';
+                const comment = order.review || 'لا يوجد تعليق مكتوب';
+                
+                // Format items summary
+                const itemsSummary = order.items.map(i => `${i.qty}x ${i.name}`).join('، ');
+
+                return `
+                    <div class="rating-card-modern">
+                        <div class="rating-header">
+                            <div class="customer-info">
+                                <div class="avatar-placeholder">${customerName.charAt(0)}</div>
+                                <div>
+                                    <div class="customer-name">${customerName}</div>
+                                    <div class="rating-date">${date}</div>
+                                </div>
+                            </div>
+                            <div class="rating-stars">
+                                ${stars}
+                            </div>
+                        </div>
+                        
+                        <div class="rating-body">
+                            <p class="rating-text">"${comment}"</p>
+                        </div>
+                        
+                        <div class="rating-footer">
+                            <div class="order-ref">
+                                <span>طلب #${order.orderNumber || order.id}</span>: <span title="${itemsSummary}" style="opacity: 0.8;">${truncateText(itemsSummary, 30)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateStars(rating) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    html += `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+                } else {
+                    html += `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#E5E7EB" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+                }
+            }
+            return html;
+        }
+
+        function truncateText(text, limit) {
+             if (text.length <= limit) return text;
+             return text.slice(0, limit) + '...';
+        }
 
         function markRatingsAsSeen() {
             const orders = getOrders();

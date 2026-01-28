@@ -3223,3 +3223,129 @@ input:focus + .slider {
         font-size: 1.4rem;
     }
 }
+
+/* ========================
+   RATINGS PAGE STYLES
+   ======================== */
+
+.ratings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.rating-card-modern {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="dark"] .rating-card-modern {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.rating-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    border-color: rgba(249, 115, 22, 0.3); /* Orange hint */
+}
+
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+    color: #6B7280;
+    font-size: 1.2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .avatar-placeholder {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    color: #94A3B8;
+}
+
+.customer-name {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--text-main);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.rating-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-body {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.rating-text {
+    font-size: 0.95rem;
+    color: #4B5563;
+    line-height: 1.6;
+    margin: 0;
+    background: #F9FAFB;
+    padding: 16px;
+    border-radius: 12px;
+    border-right: 3px solid #E5E7EB;
+    font-style: italic;
+}
+
+[data-theme="dark"] .rating-text {
+    color: #CBD5E1;
+    background: rgba(255,255,255,0.03);
+    border-color: #334155;
+}
+
+.rating-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.order-ref {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+@media (max-width: 600px) {
+    .ratings-grid {
+        grid-template-columns: 1fr;
+    }
+}
