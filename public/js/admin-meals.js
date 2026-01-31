@@ -3,10 +3,19 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ⚡ Instant Render
+    if (getCategories().length > 0 && getMeals().length > 0) {
+        initMealsPage();
+    }
+
     // Need Meals and Categories
     initializeData({ meals: true, categories: true }).then(() => {
         initMealsPage();
     });
+
+    // Listen for background updates
+    document.addEventListener('meals-updated', () => renderMeals());
+    document.addEventListener('categories-updated', () => initMealsPage()); // Re-init to update select dropdown too
 
     // Image Input Handler (Direct Resize)
     const imageInput = document.getElementById('mealImageInput');

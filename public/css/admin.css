@@ -4,6 +4,12 @@
 
 /* Font loaded via HTML for performance */
 
+* {
+    /* Global Performance Hints */
+    text-rendering: optimizeSpeed; 
+    -webkit-font-smoothing: antialiased;
+}
+
 :root {
     /* --- Premium Color Palette --- */
     
@@ -53,8 +59,12 @@
     --shadow-card: 0 16px 32px -8px rgba(249, 115, 22, 0.1); 
     --shadow-float: 0 24px 48px -12px rgba(249, 115, 22, 0.12);
     
-    --transition-smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-smooth: 0.1s ease-out;
 }
+
+/* Force hardware accelerated transitions constraints */
+/* Global transitions removed for performance */
+
 
 /* Dark Mode - Deep & Professional */
 [data-theme="dark"] {
@@ -138,7 +148,7 @@ body {
     padding: 0;
     color: var(--text-on-dark);
     box-shadow: -20px 0 60px rgba(0,0,0,0.5);
-    transition: transform 0.3s ease;
+    transition: transform 0.1s ease;
     border-left: 1px solid rgba(255,255,255,0.03);
 }
 
@@ -285,7 +295,7 @@ body {
     font-weight: 500;
     font-size: 0.92rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     position: relative;
     background: transparent;
 }
@@ -299,7 +309,7 @@ body {
     justify-content: center;
     background: rgba(255,255,255,0.03);
     border-radius: 10px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Badge Styling */
@@ -318,7 +328,7 @@ body {
 }
 
 .pulse-animation {
-    animation: badge-pulse 2s infinite;
+    /* animation: badge-pulse 2s infinite; */
 }
 
 @keyframes badge-pulse {
@@ -500,7 +510,7 @@ body {
     font-size: 0.95rem;
     border: none;
     cursor: pointer;
-    transition: all 0.25s var(--transition-smooth);
+    transition: transform 0.25s var(--transition-smooth), background-color 0.25s var(--transition-smooth), box-shadow 0.25s var(--transition-smooth);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -519,7 +529,7 @@ body {
 
 .btn-primary:hover {
     background: #ea580c;
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     box-shadow: 0 8px 20px var(--primary-glow);
 }
 
@@ -551,7 +561,7 @@ body {
     font-family: inherit;
     font-size: 0.95rem;
     color: var(--text-main);
-    transition: all 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-shadow: var(--shadow-sm);
 }
 
@@ -639,7 +649,7 @@ body {
 }
 
 .stat-card-soft:hover, .content-card:hover, .chart-section:hover, .action-orders-section:hover {
-    transform: translateY(-4px);
+    /* transform: translateY(-4px); */
     box-shadow: var(--shadow-float);
     border-color: rgba(249, 115, 22, 0.1);
 }
@@ -682,7 +692,7 @@ body {
 }
 
 .stat-card-soft:hover .stat-icon-soft {
-    transform: scale(1.1) rotate(5deg);
+    /* transform: scale(1.1) rotate(5deg); */
 }
 
 /* Specific Colors for Icons (Using softer pastels for background) */
@@ -698,6 +708,12 @@ body {
 [data-theme="dark"] .ready-icon     { background: rgba(16, 185, 129, 0.15); color: #34D399; }
 [data-theme="dark"] .revenue-icon   { background: rgba(139, 92, 246, 0.15); color: #A78BFA; }
 [data-theme="dark"] .month-icon     { background: rgba(236, 72, 153, 0.15); color: #F472B6; }
+
+/* Advanced Rendering Optimization */
+#ordersList, .orders-list-container {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1000px;
+}
 
 .stat-content {
     display: flex;
@@ -775,7 +791,7 @@ body {
 
 .action-order-card:hover {
     background: var(--bg-surface);
-    transform: translateX(-4px);
+    /* transform: translateX(-4px); */
     box-shadow: var(--shadow-sm);
     border-color: rgba(0,0,0,0.05);
 }
@@ -842,13 +858,13 @@ body {
    ======================== */
 
 #section-orders {
-    animation: fadeIn 0.4s var(--transition-smooth);
+    /* animation: fadeIn 0.4s var(--transition-smooth); */
 }
 
-@keyframes fadeIn {
+/* @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-}
+} */
 
 /* Glassmorphic Filters */
 .orders-filter {
@@ -989,7 +1005,7 @@ body {
 [data-theme="dark"] .order-card-row { border-color: rgba(255,255,255,0.05); }
 
 .order-card-row:hover {
-    transform: translateY(-4px);
+    /* transform removed by user request */
     box-shadow: var(--shadow-float);
     border-color: var(--primary-soft);
 }
@@ -1118,7 +1134,7 @@ body {
 .btn-order-view:hover {
     background: var(--primary-gradient);
     color: white;
-    transform: scale(1.1) rotate(-5deg);
+    /* transform: scale(1.1) rotate(-5deg); */
     box-shadow: 0 4px 15px var(--primary-glow);
 }
 
@@ -1159,7 +1175,7 @@ body {
 }
 
 .btn-status-action.next:hover {
-    transform: translateY(-2px) scale(1.05);
+    /* transform: translateY(-2px) scale(1.05); */
     box-shadow: 0 8px 25px var(--primary-glow);
 }
 
@@ -1379,7 +1395,7 @@ body {
 
 /* Section Animation */
 #section-meals {
-    animation: fadeInUp 0.5s ease;
+    /* animation: fadeInUp 0.5s ease; */
 }
 
 /* Bulk Actions Toolbar */
@@ -1525,7 +1541,7 @@ body {
 }
 
 .meal-card-admin:hover {
-    transform: translateY(-3px);
+    /* transform: translateY(-3px); */
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     border-color: var(--primary);
 }
@@ -1725,7 +1741,7 @@ body {
 .action-btn:not(.danger):hover {
     background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
     color: white;
-    transform: translateY(-3px) scale(1.08);
+    /* transform: translateY(-3px) scale(1.08); */
     box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
 }
 
@@ -1739,7 +1755,7 @@ body {
 .action-btn.danger:hover {
     background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
     color: white;
-    transform: translateY(-3px) scale(1.08);
+    /* transform: translateY(-3px) scale(1.08); */
     box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
 }
 
@@ -1858,7 +1874,7 @@ input:focus + .slider {
 }
 
 #section-meals .btn-primary:hover {
-    transform: translateY(-3px) scale(1.03);
+    /* transform: translateY(-3px) scale(1.03); */
     box-shadow: 0 10px 35px var(--primary-glow);
 }
 
@@ -2051,7 +2067,7 @@ input:focus + .slider {
 }
 
 .category-card-new:hover {
-    transform: translateY(-6px);
+    /* transform: translateY(-6px); */
     box-shadow: var(--shadow-float);
     border-color: var(--primary);
 }
@@ -2110,10 +2126,10 @@ input:focus + .slider {
     animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+/* @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.6; transform: scale(0.8); }
-}
+} */
 
 /* Card Body */
 .category-card-body {
@@ -2250,7 +2266,7 @@ input:focus + .slider {
     border: 1px solid rgba(0,0,0,0.05);
     padding: 0;
     overflow: hidden;
-    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); */
 }
 
 @keyframes modalPop {
@@ -2298,7 +2314,7 @@ input:focus + .slider {
 .modal-close:hover {
     background: var(--danger-soft);
     color: var(--danger);
-    transform: rotate(90deg);
+    /* transform: rotate(90deg); */
 }
 
 .modal-body {
@@ -2385,7 +2401,14 @@ input:focus + .slider {
 .cropper-controls .btn-sm {
     width: 44px;
     height: 44px;
+    margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: 'Almarai', sans-serif;
+    
+    /* Global Performance Hints */
+    text-rendering: optimizeSpeed; /* Prioritize speed over fancy ligatures */
+    -webkit-font-smoothing: antialiased;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2506,7 +2529,7 @@ input:focus + .slider {
 }
 
 .btn-add-size:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     box-shadow: 0 4px 15px var(--primary-glow);
 }
 
@@ -2516,13 +2539,14 @@ input:focus + .slider {
     grid-template-columns: 1fr 120px 44px;
     gap: 10px;
     margin-bottom: 10px;
-    animation: fadeIn 0.2s ease;
+    margin-bottom: 10px;
+    /* animation: fadeIn 0.2s ease; */
 }
 
-@keyframes fadeIn {
+/* @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
-}
+} */
 
 .size-row .form-input {
     padding: 12px 16px;
@@ -2565,7 +2589,7 @@ input:focus + .slider {
     background: #DC2626;
     color: white;
     border-color: #DC2626;
-    transform: scale(1.05);
+    /* transform: scale(1.05); */
 }
 
 /* Responsive */
@@ -2609,7 +2633,7 @@ input:focus + .slider {
 }
 
 .stat-card-soft:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); */
     box-shadow: 0 10px 25px rgba(0,0,0,0.06);
 }
 
@@ -2784,16 +2808,15 @@ input:focus + .slider {
 
 /* Button Active State - Tactile Feedback */
 .btn:active, .footer-btn:active, .nav-item:active {
-    transform: scale(0.96) !important;
-    transition: transform 0.1s ease-out;
+    /* transform: scale(0.96) !important; */
+    transition: transform 0.05s ease-out;
 }
 
 /* Modal Entry - Pop Effect */
 .modal {
-    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    will-change: transform, opacity;
-    opacity: 0;
-    transform: scale(0.95);
+    /* animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; */
+    opacity: 1;
+    transform: scale(1);
 }
 
 @keyframes modalPop {
@@ -2848,7 +2871,7 @@ input:focus + .slider {
 }
 .btn-delete-image:hover {
     background: #dc2626;
-    transform: scale(1.05);
+    /* transform: scale(1.05); */
 }
 
 
@@ -2888,8 +2911,7 @@ input:focus + .slider {
    Just a subtle dim to indicate "Processing".
 */
 .main-content {
-    will-change: opacity, filter;
-    transition: opacity 0.25s ease-out, filter 0.25s ease-out;
+    transition: opacity 0.1s ease-out, filter 0.1s ease-out;
     opacity: 1;
     filter: grayscale(0);
 }
@@ -3492,8 +3514,13 @@ input:focus + .slider {
 }
 
 @keyframes fadeInPage {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: scale(0.99); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Explicit Transition Class */
+.section-animate {
+    animation: fadeInPage 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* --- Section Cards (Cleaner) --- */

@@ -3,11 +3,19 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ⚡ Instant Render
+    if (getCategories().length > 0) {
+        renderCategories();
+    }
+
     initializeData({ categories: true, meals: true }).then(() => {
         // We load meals too effectively for delete safety check (deleteCategoryData in data.js handles it, 
         // but frontend confirmation might want to know count? Admin.js said "Delete this category will delete all meals".
         renderCategories();
     });
+
+    // Listen for background updates
+    document.addEventListener('categories-updated', renderCategories);
 
     // Setup Category SVG Input
     const categoryIconInput = document.getElementById('categoryIconInput');

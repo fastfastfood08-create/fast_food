@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Re-render to show latest numbers
         initDashboard();
     });
+
+    // Listen for background updates
+    document.addEventListener('orders-updated', () => { loadDashboardStats(); loadMonthlyChart(); loadTopSellingMealsList(); });
+    document.addEventListener('meals-updated', () => loadTopSellingMealsList()); // Top selling needs meal details
 });
 
 let revenueChartInstance = null;
@@ -21,23 +25,13 @@ async function initDashboard() {
     loadDashboardStats();
     loadMonthlyChart();
     loadTopSellingMealsList();
+    // ⚡ Poll Removed: Dashboard now updates via 'orders-updated' event
+    // The main data.js logic or manual refresh triggers updates.
     
-    // Auto-refresh every 5 seconds
-    if (!window.ordersPollInterval) {
-        window.ordersPollInterval = setInterval(async () => {
-            if (typeof refreshOrders === 'function') {
-                const oldOrders = JSON.stringify(getOrders());
-                // refreshOrders is in data.js
-                await refreshOrders();
-                const newOrders = getOrders();
-                
-                if (JSON.stringify(newOrders) !== oldOrders) {
-                    loadDashboardStats();
-                    loadMonthlyChart();
-                    loadTopSellingMealsList();
-                }
-            }
-        }, 5000);
+    // Cleanup if leaving page (not fully necessary in SPA but good practice)
+    if (window.adminApp) {
+        // We can attach it to a global cleanup list if we wanted to be strict
+        // But for now, just ensure we don't leak too many observers
     }
 }
 
@@ -128,10 +122,24 @@ function adjustStatFontSizes() {
     });
 }
 
+let chartResizeObserver = null;
+
 function loadMonthlyChart() {
     const ctx = document.getElementById('revenueChart');
     if (!ctx) return;
     
+    // 1. Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        // Retry a few times if script is still loading
+        if (!window.chartRetryCount) window.chartRetryCount = 0;
+        if (window.chartRetryCount < 5) {
+            window.chartRetryCount++;
+            setTimeout(loadMonthlyChart, 500);
+        }
+        return;
+    }
+    window.chartRetryCount = 0;
+
     const orders = getOrders().filter(o => o.status === 'delivered');
     const today = new Date();
     const currentMonth = today.getMonth();
@@ -156,52 +164,73 @@ function loadMonthlyChart() {
         data.push(dailyRevenue[i]);
     }
 
+    // Destroy existing instance if any (Just in case)
     if (revenueChartInstance) {
-        revenueChartInstance.data.labels = labels;
-        revenueChartInstance.data.datasets[0].data = data;
-        revenueChartInstance.update();
-    } else {
-        revenueChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'الدخل (دج)',
-                    data: data,
-                    borderColor: '#F97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#F97316',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false, // Instant Render
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return context.parsed.y + ' دج';
-                            }
+        revenueChartInstance.destroy();
+        revenueChartInstance = null;
+    }
+
+    revenueChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'الدخل (دج)',
+                data: data,
+                borderColor: '#F97316',
+                backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#F97316',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 500 }, // Slight animation confirms loading
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    rtl: true,
+                    titleAlign: 'right',
+                    bodyAlign: 'right',
+                    callbacks: {
+                        label: function(context) {
+                            return context.formattedValue + ' دج';
                         }
                     }
-                },
-                scales: {
-                    x: { grid: { display: false }, ticks: { font: { family: 'Tajawal' } } },
-                    y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { family: 'Tajawal' } } }
                 }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { family: 'Tajawal' } } },
+                y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { family: 'Tajawal' } } }
             }
-        });
+        }
+    });
+
+    // 2. Resilience: Force resize when sidebar loads/toggles
+    // This allows the chart to re-calculate width if it rendered while hidden or squeezed
+    if (chartResizeObserver) chartResizeObserver.disconnect();
+    
+    chartResizeObserver = new ResizeObserver(() => {
+        if (revenueChartInstance) revenueChartInstance.resize();
+    });
+    
+    if (ctx.parentElement) {
+        chartResizeObserver.observe(ctx.parentElement);
     }
 }
+
+// Listen to sidebar ready event
+window.addEventListener('sidebar-loaded', () => {
+    // Small delay to let layout settle
+    setTimeout(loadMonthlyChart, 100);
+});
 
 function loadTopSellingMealsList() {
     const container = document.getElementById('topSellingMealsList');

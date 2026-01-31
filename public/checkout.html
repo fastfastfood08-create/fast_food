@@ -719,15 +719,27 @@
                 const order = await createOrder(orderData);
                 
                 if (order) {
-                    sessionStorage.setItem('lastOrderNumber', order.orderNumber);
+                    sessionStorage.setItem('lastOrderNumber', order.orderNumber || order.id);
                     sessionStorage.setItem('lastOrderId', order.id);
+                    // Save full object to avoid fetch race conditions
+                    sessionStorage.setItem('lastOrderDetails', JSON.stringify(order));
                     window.location.replace('order-success.html');
                 } else {
                      throw new Error("Order creation failed");
                 }
             } catch (err) {
-                console.error(err);
-                showToast('حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.', 'error');
+                console.error("Checkout Error:", err);
+                let msg = 'حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.';
+                
+                // Specific Translations
+                if (err.message === 'Restaurant is closed') msg = 'عذراً، المطعم مغلق حالياً';
+                else if (err.message === 'Cart is empty') msg = 'السلة فارغة';
+                else if (err.message && !err.message.startsWith('API Error') && err.message !== 'Order creation failed') {
+                    // Show backend error (likely validation)
+                    msg = err.message;
+                }
+                
+                showToast(msg, 'error');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }

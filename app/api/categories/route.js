@@ -40,6 +40,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
+    console.log("POST /api/categories body:", JSON.stringify(body));
     
     if (!body.name || body.name.trim() === '') {
       return NextResponse.json({ error: 'اسم القسم مطلوب' }, { status: 400 });
@@ -47,8 +48,11 @@ export async function POST(request) {
     
     let category;
     if (body.id) {
+        const id = parseInt(body.id);
+        if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+
         category = await prisma.category.update({
-            where: { id: body.id },
+            where: { id: id },
             data: {
                 name: body.name,
                 icon: body.icon || '📁',
@@ -60,7 +64,7 @@ export async function POST(request) {
             data: {
                 name: body.name,
                 icon: body.icon || '📁',
-                order: body.order || 0,
+                order: parseInt(body.order) || 0,
                 active: body.active !== undefined ? body.active : true
             }
         });
@@ -69,6 +73,7 @@ export async function POST(request) {
     revalidateTag('categories');
     return NextResponse.json(category);
   } catch (error) {
+    console.error("Category Save Error:", error);
     return NextResponse.json({ 
       error: 'فشل في حفظ القسم'
     }, { status: 500 });
@@ -84,12 +89,16 @@ export async function DELETE(request) {
     }
 
     try {
+        const numericId = parseInt(id);
+        if (isNaN(numericId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+
         await prisma.category.delete({
-            where: { id: parseInt(id) }
+            where: { id: numericId }
         });
         revalidateTag('categories');
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("Category Delete Error:", error);
         return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
     }
 }

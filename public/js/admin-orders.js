@@ -3,21 +3,24 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ⚡ Instant Render (Cache)
+    if (typeof getOrders === 'function' && getOrders().length > 0) {
+        renderOrders();
+    }
+
+    // ⚡ Poll Removed: Using Event-Driven Updates (SWR) from data.js
+    // window.ordersPollInterval is no longer needed as refreshOrders in data.js 
+    // fires 'orders-updated' which we already listen to.
+    
     // Only load orders and settings
     initializeData({ orders: true, settings: true }).then(() => {
         renderOrders();
         
-        // Auto-refresh orders
-        setInterval(async () => {
-            if (typeof refreshOrders === 'function') {
-                const oldOrders = JSON.stringify(getOrders());
-                await refreshOrders();
-                const newOrders = getOrders();
-                if (JSON.stringify(newOrders) !== oldOrders) {
-                    renderOrders();
-                }
-            }
-        }, 5000);
+        // Listen for background updates (SWR pattern)
+        document.addEventListener('orders-updated', renderOrders);
+        
+    // ⚡ Poll Removed: Using Event-Driven Updates (SWR) from data.js
+    // window.ordersPollInterval is no longer needed.
     });
     
     // Setup Filter Tabs
@@ -148,6 +151,10 @@ function renderOrders() {
         } else if (order.status === 'delivered') {
             actionButtons = `
                 <button class="btn-status-action prev" onclick="safeUpdateStatus('${order.id}', 'ready', 'delivered')" title="رجوع للحالة السابقة"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg> تراجع</button>
+            `;
+        } else if (order.status === 'cancelled') {
+            actionButtons = `
+                <button class="btn-status-action next" onclick="updateStatus('${order.id}', 'new')" style="background:var(--success); color:white;">إستعادة الطلب</button>
             `;
         }
         

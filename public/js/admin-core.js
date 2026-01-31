@@ -38,10 +38,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // If data is already loaded or we wait for it
         const timeout = setTimeout(hideLoader, 3000); // Safe limit
-        document.addEventListener('data-ready', () => {
-            clearTimeout(timeout);
-            hideLoader();
-        }, { once: true });
+        
+        // ⚡ Fast Check: If we have orders (cache), hide immediately!
+        if (typeof getOrders === 'function' && getOrders().length > 0) {
+             clearTimeout(timeout);
+             hideLoader();
+        } else {
+            document.addEventListener('data-ready', () => {
+                clearTimeout(timeout);
+                hideLoader();
+            }, { once: true });
+        }
     }
     
     // Listen for browser back/forward buttons
@@ -250,6 +257,9 @@ async function loadSidebar() {
             // Ensure badge updates logic is running (it handles duplication internally)
             startPersistentBadgeUpdates();
         }
+        
+        // Dispatch event so other scripts know sidebar is ready (layout stable)
+        window.dispatchEvent(new Event('sidebar-loaded'));
     } catch (error) {
         console.error('Error loading sidebar:', error);
     }
@@ -314,15 +324,8 @@ function startPersistentBadgeUpdates() {
         }
     }, 500);
 
-    // Persistent interval (stored in badgeInterval, NOT intervals array)
-    window.adminApp.badgeInterval = setInterval(async () => {
-        // Only refresh if we are NOT on a high-traffic page that does its own polling
-        const isHighTrafficPage = window.location.pathname.includes('admin-orders.html') || 
-                                 window.location.pathname.includes('admin-dashboard.html');
-        if (!isHighTrafficPage && typeof refreshOrders === 'function') {
-            await refreshOrders();
-        }
-    }, 30000);
+    // Persistent interval    // ⚡ Poll Removed: Badges update via 'orders-updated' event listener in admin-core.js
+    // which triggers updateBadges()
 }
 
 function checkLogin() {

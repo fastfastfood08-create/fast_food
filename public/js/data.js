@@ -47,12 +47,34 @@ try {
     console.error('Failed to parse cached settings', e);
 }
 
+// Load Cached Data
+let cachedOrders = [];
+let cachedCategories = [];
+let cachedMeals = [];
+
+try {
+    cachedOrders = JSON.parse(localStorage.getItem('cachedOrders') || '[]');
+    cachedCategories = JSON.parse(localStorage.getItem('cachedCategories') || '[]');
+    // Fallback to FALLBACK_DATA only if cache is empty? No, better start empty or cached.
+    // Actually FALLBACK_DATA is useful for offline/first run demo.
+    // If cache exists, use it. If not, fallback data is used in getters if array empty?
+    // Current getter logic: return appState.categories || FALLBACK_DATA.categories;
+    // We should overwrite appState with cache if available.
+    if (cachedCategories.length === 0) cachedCategories = FALLBACK_DATA.categories; 
+
+    cachedMeals = JSON.parse(localStorage.getItem('cachedMeals') || '[]');
+    if (cachedMeals.length === 0) cachedMeals = FALLBACK_DATA.meals;
+
+} catch (e) {
+    console.error('Failed to parse cached data', e);
+}
+
 // Global State
 const appState = {
-    categories: [],
-    meals: [],
+    categories: cachedCategories,
+    meals: cachedMeals,
     settings: cachedSettings, 
-    orders: []
+    orders: cachedOrders
 };
 
 
@@ -93,8 +115,16 @@ async function initializeData(options = {}) {
             console.log(`🔄 Fetching ${key}...`);
             loadingPromises[key] = fetcher().then(data => {
                 if (data) {
-                    if (key === 'categories') appState.categories = data;
-                    else if (key === 'meals') appState.meals = data;
+                    if (key === 'categories') {
+                        appState.categories = data;
+                        localStorage.setItem('cachedCategories', JSON.stringify(data));
+                        document.dispatchEvent(new CustomEvent('categories-updated'));
+                    }
+                    else if (key === 'meals') {
+                        appState.meals = data;
+                        localStorage.setItem('cachedMeals', JSON.stringify(data));
+                        document.dispatchEvent(new CustomEvent('meals-updated'));
+                    }
                     else if (key === 'settings') {
                         appState.settings = { ...FALLBACK_DATA.settings, ...data };
                         // Cache settings for next load
@@ -126,11 +156,22 @@ async function initializeData(options = {}) {
     const tasks = [];
 
     if (loadAll || options.categories) {
-        tasks.push(fetchIfNeeded('categories', () => ApiClient.getCategories(isAdminPage)));
+        if (appState.categories && appState.categories.length > 0) {
+             console.log('⚡ Using cached categories...');
+             // Still fetch to update
+             fetchIfNeeded('categories', () => ApiClient.getCategories(isAdminPage));
+        } else {
+             tasks.push(fetchIfNeeded('categories', () => ApiClient.getCategories(isAdminPage)));
+        }
     }
 
     if (loadAll || options.meals) {
-        tasks.push(fetchIfNeeded('meals', () => ApiClient.getMeals()));
+        if (appState.meals && appState.meals.length > 0) {
+             console.log('⚡ Using cached meals...');
+             fetchIfNeeded('meals', () => ApiClient.getMeals());
+        } else {
+             tasks.push(fetchIfNeeded('meals', () => ApiClient.getMeals()));
+        }
     }
 
     if (loadAll || options.settings !== false) {
@@ -138,7 +179,13 @@ async function initializeData(options = {}) {
     }
 
     if ((loadAll && isAdminPage) || options.orders) {
-        tasks.push(fetchIfNeeded('orders', () => ApiClient.getOrders()));
+        // Optimization: If we have cached orders, don't block. Refresh in background.
+        if (appState.orders && appState.orders.length > 0) {
+            console.log('⚡ Using cached orders, refreshing in background...');
+            refreshOrders(); // Fire and forget
+        } else {
+             tasks.push(fetchIfNeeded('orders', () => ApiClient.getOrders()));
+        }
     }
 
     try {
@@ -457,6 +504,12 @@ async function refreshOrders() {
 
 
         appState.orders = combinedOrders;
+        
+        // Cache for next load
+        try {
+             localStorage.setItem('cachedOrders', JSON.stringify(combinedOrders));
+        } catch (e) { console.error('Failed to cache orders', e); }
+
         document.dispatchEvent(new CustomEvent('orders-updated'));
         return appState.orders;
     } catch (e) {

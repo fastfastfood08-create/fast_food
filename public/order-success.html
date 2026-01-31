@@ -158,44 +158,53 @@
         document.addEventListener('DOMContentLoaded', async () => {
              const orderNumber = sessionStorage.getItem('lastOrderNumber');
              const orderId = sessionStorage.getItem('lastOrderId');
+             const storedDetails = sessionStorage.getItem('lastOrderDetails'); // Instant Fallback
              
-             if (!orderNumber && !orderId) {
+             if (!orderNumber && !orderId && !storedDetails) {
                  window.location.href = 'index.html';
                  return;
              }
              
              // Optimally Fetch Order
              let order = null;
-             try {
-                // Try fetching specific order first
-                // If backend supports filtering by ID via query param
-                const targetId = orderId || orderNumber; // Fallback
-                
-                // We use ApiClient directly to avoid loading all orders
-                const response = await ApiClient.request(`/orders?id=${targetId}`);
-                
-                if (Array.isArray(response)) {
-                    // JSON Server behavior: returns array
-                    // Find exact match (string vs int safe)
-                    order = response.find(o => o.id == targetId || o.orderNumber == orderNumber);
-                } else if (response && (response.id || response.orderNumber)) {
-                     // Single object return
-                     order = response;
-                }
-                
-                // Normalize it
-                // We need normalizeOrder from data.js but it's internal. 
-                // We can accept raw or duplicate the simple normalization:
-                if (order) {
-                     if (!order.items) order.items = [];
-                     // Parse location
-                     if (typeof order.location === 'string' && order.location.startsWith('{')) {
-                         try { order.location = JSON.parse(order.location); } catch(e){}
-                     }
-                }
+             
+             // 1. Try Instant Local Storage (Fastest & avoids race conditions)
+             if (storedDetails) {
+                 try {
+                     order = JSON.parse(storedDetails);
+                     console.log("Loaded order from Session Storage:", order);
+                 } catch(e) {
+                     console.error("Failed to parse stored details", e);
+                 }
+             }
 
-             } catch (e) {
-                 console.error("Order fetch failed, trying fallback", e);
+             // 2. If not found, Try Network
+             if (!order) {
+                 try {
+                    // Try fetching specific order first
+                    const targetId = orderId || orderNumber; 
+                    
+                    const response = await ApiClient.request(`/orders?id=${targetId}`);
+                    
+                    if (Array.isArray(response)) {
+                        order = response.find(o => o.id == targetId || o.orderNumber == orderNumber);
+                        // If returned array has 1 item and searched by ID, likely that's it
+                        if (!order && response.length === 1) order = response[0];
+                    } else if (response && (response.id || response.orderNumber)) {
+                         order = response;
+                    }
+                    
+                    if (order) {
+                         // Normalize if fetched raw
+                         if (!order.items) order.items = [];
+                         if (typeof order.location === 'string' && order.location.startsWith('{')) {
+                             try { order.location = JSON.parse(order.location); } catch(e){}
+                         }
+                    }
+    
+                 } catch (e) {
+                     console.error("Order fetch failed, trying fallback", e);
+                 }
              }
 
              if (order) {

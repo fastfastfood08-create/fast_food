@@ -18,7 +18,16 @@ const ApiClient = {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
             
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                let errorMessage = `API Error: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (e) {
+                    // Could not parse error JSON, stick to status
+                }
+                throw new Error(errorMessage);
             }
             
             return await response.json();

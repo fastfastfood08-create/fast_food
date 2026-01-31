@@ -1,103 +1,120 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-export async function GET() {
-  try {
-    const orders = await prisma.order.findMany({
-      select: {
-        id: true,
-        customerName: true,
-        customerPhone: true,
-        customerAddress: true,
-        location: true,
-        total: true,
-        subtotal: true,
-        deliveryCost: true,
-        status: true,
-        orderType: true,
-        notes: true,
-        rating: true,
-        review: true,
-        ratingSeen: true,
-        createdAt: true,
-        items: {
-            select: {
-                quantity: true,
-                mealName: true,
-                price: true,
-                size: true
-            }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+export const dynamic = 'force-dynamic';
 
-    const cleanOrders = orders.map(o => ({
-        id: o.id,
-        orderNumber: o.id,
-        customerName: o.customerName,
-        customerPhone: o.customerPhone,
-        address: o.customerAddress,
-        location: o.location,
-        total: o.total,
-        subtotal: o.subtotal,
-        deliveryCost: o.deliveryCost,
-        status: o.status,
-        orderType: o.orderType,
-        notes: o.notes,
-        rating: o.rating,
-        review: o.review,
-        ratingSeen: o.ratingSeen,
-        createdAt: o.createdAt,
-        items: o.items.map(i => ({
+// Helper to normalize order for frontend
+function normalizeOrder(order) {
+    let location = order.location;
+    if (typeof location === 'string' && (location.startsWith('{') || location.startsWith('['))) {
+        try { location = JSON.parse(location); } catch (e) {
+            console.error("Failed to parse location JSON:", e);
+        }
+    }
+
+    // CRITICAL: Map 'pending' db status to 'new' for frontend admin panel
+    const status = order.status === 'pending' ? 'new' : order.status;
+
+    return {
+        id: order.id,
+        orderNumber: order.id, // Use ID as order number
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        address: order.customerAddress,
+        location: location,
+        total: order.total,
+        subtotal: order.subtotal,
+        deliveryCost: order.deliveryCost,
+        status: status, 
+        orderType: order.orderType,
+        notes: order.notes,
+        rating: order.rating,
+        review: order.review,
+        ratingSeen: order.ratingSeen,
+        createdAt: order.createdAt,
+        items: order.items.map(i => ({
             quantity: i.quantity,
             name: i.mealName,
+            mealId: i.mealId,
             price: i.price,
             sizeName: i.size
         }))
-    }));
+    };
+}
 
-    return NextResponse.json(cleanOrders);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
-  }
+export async function GET(request) {
+    console.log("GET /api/orders called");
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        const phone = searchParams.get('phone');
+
+        let whereClause = {};
+        if (id) {
+            whereClause.id = parseInt(id);
+        } else if (phone) {
+            whereClause.customerPhone = { contains: phone.trim() };
+        }
+
+        const orders = await prisma.order.findMany({
+            where: whereClause,
+            include: { items: true },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        console.log(`Fetched ${orders.length} orders from DB`);
+
+        const cleanOrders = orders.map(normalizeOrder);
+        return NextResponse.json(cleanOrders);
+
+    } catch (error) {
+        console.error("GET /api/orders CRITICAL ERROR:", error);
+        return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    }
 }
 
 export async function POST(request) {
-  try {
-    const body = await request.json();
-    
-    const order = await prisma.order.create({
-      data: {
-        customerName: body.customerName,
-        customerPhone: body.customerPhone,
-        customerAddress: body.customerAddress || body.address || '',
-        location: body.location ? (typeof body.location === 'string' ? body.location : JSON.stringify(body.location)) : '',
-        total: parseFloat(body.total) || 0,
-        subtotal: parseFloat(body.subtotal) || 0,
-        deliveryCost: parseFloat(body.deliveryCost) || 0,
-        status: body.status || 'new',
-        orderType: body.orderType || 'delivery',
-        notes: body.notes || '',
-        items: {
-          create: body.items.map(item => ({
-            mealId: parseInt(item.mealId || item.id),
-            mealName: item.name || item.mealName || 'Unknown',
-            quantity: parseInt(item.quantity),
-            price: parseFloat(item.price),
-            size: item.sizeName || item.size || ''
-          }))
+    try {
+        const body = await request.json();
+        console.log("POST /api/orders body:", JSON.stringify(body, null, 2));
+
+        if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+            return NextResponse.json({ error: 'Order must have items' }, { status: 400 });
         }
-      },
-      include: { items: true } // We need items for return
-    });
-    
-    return NextResponse.json(order);
-  } catch (error) {
-    return NextResponse.json({ 
-      error: 'Failed to create order' 
-    }, { status: 500 });
-  }
+
+        // Force 'new' status if not specified or properly mapped
+        const initialStatus = body.status || 'new';
+
+        const order = await prisma.order.create({
+            data: {
+                customerName: body.customerName || 'Guest',
+                customerPhone: body.customerPhone,
+                customerAddress: body.customerAddress || body.address || '',
+                location: body.location ? (typeof body.location === 'string' ? body.location : JSON.stringify(body.location)) : '',
+                total: parseFloat(body.total) || 0,
+                subtotal: parseFloat(body.subtotal) || 0,
+                deliveryCost: parseFloat(body.deliveryCost) || 0,
+                status: initialStatus,
+                orderType: body.orderType || 'delivery',
+                notes: body.notes || '',
+                items: {
+                    create: body.items.map(item => ({
+                        mealId: parseInt(item.mealId || item.id),
+                        mealName: item.name || item.mealName || 'Unknown',
+                        quantity: parseInt(item.quantity) || 1,
+                        price: parseFloat(item.price) || 0,
+                        size: item.sizeName || item.size || ''
+                    }))
+                }
+            },
+            include: { items: true }
+        });
+
+        return NextResponse.json(normalizeOrder(order));
+    } catch (error) {
+        console.error("POST /api/orders CRITICAL ERROR:", error);
+        return NextResponse.json({ error: error.message || 'Failed to create order' }, { status: 500 });
+    }
 }
 
 export async function PUT(request) {
@@ -105,36 +122,42 @@ export async function PUT(request) {
         const body = await request.json();
         const { id, status, rating, review, ratingSeen } = body;
 
-        if (!id) return NextResponse.json({error: 'ID required'}, {status: 400});
+        console.log(`PUT /api/orders updating ID ${id}`, body);
+
+        if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
         const data = {};
         if (status) data.status = status;
         if (rating !== undefined) data.rating = parseInt(rating);
         if (review !== undefined) data.review = review;
         if (ratingSeen !== undefined) data.ratingSeen = ratingSeen;
-        
+
         const order = await prisma.order.update({
             where: { id: parseInt(id) },
-            data: data
+            data: data,
+            include: { items: true }
         });
-        
-        return NextResponse.json(order);
+
+        return NextResponse.json(normalizeOrder(order));
     } catch (error) {
+        console.error("PUT /api/orders ERROR:", error);
         return NextResponse.json({ error: 'Update failed' }, { status: 500 });
     }
 }
 
 export async function DELETE(request) {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
-    if (!id) return NextResponse.json({error: 'ID required'}, {status: 400});
-
     try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+        console.log(`DELETE /api/orders ID ${id}`);
+
         await prisma.order.delete({ where: { id: parseInt(id) } });
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("DELETE /api/orders ERROR:", error);
         return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
     }
 }
-

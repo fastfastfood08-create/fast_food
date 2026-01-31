@@ -35,6 +35,15 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get('categoryId');
     
+    // Safety check if database is reachable
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+    } catch(dbError) {
+        console.error("Database connection check failed:", dbError);
+        // Fallback to empty array if DB is down, to prevent 500 crash effectively
+        return NextResponse.json([]); 
+    }
+
     const meals = await getMeals();
     
     if (categoryId) {
@@ -44,6 +53,7 @@ export async function GET(request) {
     
     return NextResponse.json(meals);
   } catch (error) {
+    console.error("GET /api/meals error:", error);
     return NextResponse.json({ error: 'Failed to fetch meals' }, { status: 500 });
   }
 }
@@ -51,41 +61,59 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
+    console.log("POST /api/meals body:", JSON.stringify(body));
     
     // Validate required fields
     if (!body.name || body.name.trim() === '') {
       return NextResponse.json({ error: 'اسم الوجبة مطلوب' }, { status: 400 });
     }
 
-    if (!body.categoryId) {
+    const catId = parseInt(body.categoryId);
+    if (!body.categoryId || isNaN(catId)) {
       return NextResponse.json({ error: 'القسم مطلوب' }, { status: 400 });
     }
 
+    const price = parseFloat(body.price);
+    const safePrice = isNaN(price) ? 0 : price;
+
     let meal; 
+
+    // Prepare sizes safely
+    const prepareSizes = (sizes) => {
+        if (!sizes || !Array.isArray(sizes)) return [];
+        return sizes.map(s => {
+            const p = parseFloat(s.price);
+            return {
+                name: s.name || 'size',
+                price: isNaN(p) ? 0 : p
+            };
+        });
+    };
 
     // ID exists -> Update
     if (body.id) {
+        const id = parseInt(body.id);
+        if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+
         // Handle sizes update (delete old, create new is simplest strategy for now)
         if (body.sizes !== undefined) {
-            await prisma.mealSize.deleteMany({ where: { mealId: body.id }});
+             // Transaction would be better but simple sequential for now
+            await prisma.mealSize.deleteMany({ where: { mealId: id }});
         }
         
         meal = await prisma.meal.update({
-            where: { id: body.id },
+            where: { id: id },
             data: {
                 name: body.name,
                 description: body.description || '',
                 image: body.image || null,
-                price: parseFloat(body.price) || 0,
-                categoryId: parseInt(body.categoryId),
+                price: safePrice,
+                categoryId: catId,
                 active: body.active !== undefined ? body.active : true,
                 popular: body.popular || false,
                 hasSizes: body.hasSizes || false,
                 sizes: body.sizes && body.sizes.length > 0 ? {
-                    create: body.sizes.map(s => ({
-                        name: s.name,
-                        price: parseFloat(s.price)
-                    }))
+                    create: prepareSizes(body.sizes)
                 } : undefined
             },
             include: { sizes: true }
@@ -97,17 +125,14 @@ export async function POST(request) {
                 name: body.name,
                 description: body.description || '',
                 image: body.image || null,
-                price: parseFloat(body.price) || 0,
-                categoryId: parseInt(body.categoryId),
+                price: safePrice,
+                categoryId: catId,
                 active: body.active !== undefined ? body.active : true,
                 popular: body.popular || false,
                 hasSizes: body.hasSizes || false,
-                order: body.order || 0,
+                order: parseInt(body.order) || 0,
                 sizes: {
-                    create: (body.sizes || []).map(s => ({
-                        name: s.name,
-                        price: parseFloat(s.price)
-                    }))
+                    create: prepareSizes(body.sizes)
                 }
             },
             include: { sizes: true }
@@ -117,8 +142,9 @@ export async function POST(request) {
     revalidateTag('meals');
     return NextResponse.json(meal);
   } catch (error) {
+    console.error("Meal Save Error:", error);
     return NextResponse.json({ 
-      error: 'فشل في حفظ الوجبة'
+      error: 'فشل في حفظ الوجبة: ' + (error.message || 'Unknown error')
     }, { status: 500 });
   }
 }
@@ -133,12 +159,17 @@ export async function DELETE(request) {
     }
 
     try {
+        const numericId = parseInt(id);
+        if(isNaN(numericId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+
         await prisma.meal.delete({
-            where: { id: parseInt(id) }
+            where: { id: numericId }
         });
+        
         revalidateTag('meals');
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+        console.error("Meal Delete Error:", error);
+        return NextResponse.json({ error: 'Failed to delete meal' }, { status: 500 });
     }
 }

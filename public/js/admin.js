@@ -244,13 +244,13 @@ function showSection(sectionId) {
 
             // Hide Loader Immediately for "Fast" feel
             if (loader) {
-                // Small delay (200ms) only to ensure smooth wipe, not 450ms
+                // Ultra-Fast fade out (Optimized)
                 setTimeout(() => {
                     loader.style.opacity = '0';
                     setTimeout(() => {
                         loader.style.display = 'none';
-                    }, 300); 
-                }, 200);
+                    }, 200); 
+                }, 50);
             }
         });
     });
@@ -275,42 +275,8 @@ async function initDashboard() {
         loadTopSellingMealsList();
     }
     
-    // Auto-refresh orders every 10 seconds (optimized for performance)
-    if (!window.ordersPollInterval) {
-        window.ordersPollInterval = setInterval(async () => {
-            // Performance: Don't poll if tab is backgrounded
-            if (document.hidden) return;
-
-            if (typeof refreshOrders === 'function') {
-                // Lightweight check attempt before heavy diff
-                const currentOrders = getOrders();
-                const preCheck = { len: currentOrders.length, topId: currentOrders[0]?.id, topStatus: currentOrders[0]?.status };
-                
-                await refreshOrders();
-                
-                const newOrders = getOrders();
-                const postCheck = { len: newOrders.length, topId: newOrders[0]?.id, topStatus: newOrders[0]?.status };
-
-                // Heuristic: If count or top order changed, definitely update. 
-                // If deep change needed, we do it safely.
-                // For ultimate performance, we assume if top order & count are same, no major "New Order" urgency exists.
-                // But status changes in older orders might be missed. 
-                // Compromise: Full check every 3rd poll, Light check otherwise? 
-                // Let's just do full check but less often (10s).
-                
-                if (JSON.stringify(newOrders) !== JSON.stringify(currentOrders)) {
-                    requestAnimationFrame(() => {
-                        loadDashboardStats();
-                        loadMonthlyChart();
-                        loadTopSellingMealsList();
-                        
-                        if (currentSection === 'orders') renderOrders();
-                        if (currentSection === 'ratings') renderRatedOrders();
-                    });
-                }
-            }
-        }, 10000); // 10 seconds (Balance between realtime and cpu usage)
-    }
+    // ⚡ Poll Removed: Dashboard updates via 'orders-updated' events in admin-dashboard.js
+    // No central polling needed.
 }
 
 function loadDashboardStats() {
