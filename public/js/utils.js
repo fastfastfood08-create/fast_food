@@ -412,40 +412,83 @@ function fallbackCopyToClipboard(text) {
  * @param {number} iconScale - نسبة حجم الأيقونة (0-1)
  */
 function getMealImageOrPlaceholder(meal, style = '', imgStyle = '', iconScale = 0.6) {
-    if (meal && meal.image) {
-        return `<img src="${meal.image}" alt="${meal.name}" style="${imgStyle}" loading="lazy">`;
-    }
+    const finalContainerStyle = style || 'width: 100%; height: 100%;';
+    
+    // Base size for icons (pixels)
+    const baseSize = 30; 
+    const calculatedSize = baseSize * iconScale;
 
-    // محاولة الحصول على أيقونة القسم
-    let categoryIcon = null;
-    if (meal) {
-         // Attempt to find category via global getCategories if available
-         if (typeof getCategories === 'function') {
-            let catId = meal.categoryId;
-            
-            // If catId is missing (e.g. cart item), try to find it from global meals
-            if (!catId && typeof getMeals === 'function') {
-                const globalMeal = getMeals().find(m => m.id == meal.id);
-                if (globalMeal) catId = globalMeal.categoryId;
+    // Internal Helper to get Icon Content (SVG or Emoji)
+    const getIconContent = (m) => {
+        let catId = m.categoryId || m.category_id;
+        
+        // Lookup if missing
+        if (!catId && typeof getMeals === 'function') {
+            const lookupId = m.mealId || m.id;
+            const globalMeal = getMeals().find(gm => gm.id == lookupId);
+            if (globalMeal) catId = globalMeal.categoryId;
+        }
+
+        if (!catId || typeof getCategories !== 'function') return null;
+        
+        const categories = getCategories();
+        const category = categories.find(c => String(c.id) === String(catId));
+        
+        if (category && category.icon) {
+            const iconStr = category.icon.trim();
+            // Check if it's an SVG
+            if (iconStr.startsWith('<svg')) {
+                 // Force 1em size to match font-size of container
+                 return iconStr.replace(/width="\d+"/, '').replace(/height="\d+"/, '')
+                               .replace('<svg ', '<svg preserveAspectRatio="xMidYMid meet" style="width: 1em; height: 1em; overflow: visible;" ');
             }
+            // For Emojis/Text, just return as is (will inherit font-size)
+            return iconStr;
+        }
+        return null;
+    };
 
-            const cat = getCategories().find(c => c.id == catId);
-            if (cat && cat.icon) categoryIcon = cat.icon;
-         }
-         // Fallback: check if icon is directly on the meal object (e.g. cart items might have it)
-         if (!categoryIcon && meal.categoryIcon) {
-            categoryIcon = meal.categoryIcon;
-         }
+    const fallbackContent = getIconContent(meal);
+    
+    // 1. Check for real meal image
+    if (meal && meal.image && typeof meal.image === 'string' && meal.image.trim().length > 10) { 
+        // Fallback HTML (hidden by default)
+        const fallbackHtml = fallbackContent 
+            ? `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: ${calculatedSize}px;">
+                 ${fallbackContent}
+               </div>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1em; height: 1em; font-size: ${calculatedSize}px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+        return `
+            <div class="meal-image-container" style="${finalContainerStyle}; position: relative; overflow: hidden; background: #F9FAFB;">
+                 <img src="${meal.image}" alt="${meal.name || ''}" class="meal-image-img" 
+                      style="width: 100%; height: 100%; object-fit: cover; ${imgStyle}" loading="lazy" 
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                 <div class="meal-placeholder-fallback" style="display:none; position:absolute; top:0; left:0; width: 100%; height: 100%; align-items: center; justify-content: center;">
+                    ${fallbackHtml}
+                 </div>
+            </div>`;
     }
 
-    const placeholderContent = categoryIcon 
-        ? `<div class="category-icon-placeholder" style="font-size: 2.5rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">${categoryIcon}</div>`
-        : `<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f37d.svg" alt="placeholder" style="width: ${iconScale * 100}%; height: ${iconScale * 100}%; object-fit: contain;">`;
+    // 2. Fallback Generation
+    if (fallbackContent) {
+         return `
+            <div class="meal-placeholder-auto" style="${finalContainerStyle}; background: #F9FAFB; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: ${calculatedSize}px; line-height: 1;">
+                    ${fallbackContent}
+                </div>
+            </div>
+        `;
+    }
 
-    return `<div class="meal-placeholder" style="display:flex; align-items:center; justify-content:center; background:#f8fafc; width:100%; height:100%; ${style}">
-                ${placeholderContent}
-            </div>`;
+    // 3. Ultimate Fallback
+    return `
+        <div class="meal-placeholder-default" style="${finalContainerStyle}; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+    `;
 }
+window.getMealImageOrPlaceholder = getMealImageOrPlaceholder;
 // Export globally
 window.getMealImageOrPlaceholder = getMealImageOrPlaceholder;
 

@@ -147,7 +147,7 @@ function renderMeals(categoryId = 'all') {
             <div class="meal-card-admin ${!meal.active ? 'meal-inactive' : ''}" onclick="openMealModal(${meal.id})">
                 <div class="meal-card-image">
                     ${window.getMealImageOrPlaceholder 
-                        ? window.getMealImageOrPlaceholder(meal) 
+                        ? window.getMealImageOrPlaceholder(meal, '', '', 1.1) 
                         : (meal.image ? `<img src="${meal.image}" alt="${meal.name}">` : '')}
                 </div>
                 <div class="meal-card-content">

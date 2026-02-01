@@ -292,7 +292,7 @@ function createMealCard(meal, index) {
         <div class="meal-card fade-in" style="animation-delay: ${index * 0.05}s" onclick="openMealModal(${meal.id})">
             <div class="meal-image">
                 ${window.getMealImageOrPlaceholder 
-                    ? window.getMealImageOrPlaceholder(meal) 
+                    ? window.getMealImageOrPlaceholder(meal, '', '', 2.2) 
                     : (meal.image ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` : '')}
             </div>
             <div class="meal-content">

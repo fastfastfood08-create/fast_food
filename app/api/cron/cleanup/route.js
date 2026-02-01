@@ -18,15 +18,21 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Delete all orders
-    // This will cascade delete order items
-    // Customer info and ratings are embedded in orders, so they are deleted too.
-    const deletedOrders = await prisma.order.deleteMany({});
+    // Delete only 'delivered' and 'cancelled' orders
+    // This will cascade delete order items automatically defined in schema
+    const deletedOrders = await prisma.order.deleteMany({
+      where: {
+        status: {
+          in: ['delivered', 'cancelled']
+        }
+      }
+    });
 
     return NextResponse.json({
       success: true,
       message: 'Cleanup completed successfully',
       deletedCount: deletedOrders.count,
+      targetStatuses: ['delivered', 'cancelled'],
       timestamp: new Date().toISOString()
     });
 

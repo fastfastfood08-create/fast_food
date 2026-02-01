@@ -408,23 +408,32 @@
                 return;
             }
 
+            // 0. Update Restaurant Info (Logo & Name) - FAST LOAD
             try {
-                // Settings initialization logic
-                const cachedSettings = localStorage.getItem('app_settings');
-                if (cachedSettings) {
-                    const parsed = JSON.parse(cachedSettings);
-                    if (parsed.restaurantName && parsed.restaurantName !== 'غير مذكور') {
-                        document.getElementById('logoName').textContent = parsed.restaurantName;
+                // Try global getSettings first (if loaded from data.js)
+                if (typeof getSettings === 'function') {
+                    const cached = getSettings();
+                    if (cached && cached.restaurantName) {
+                        const logoElement = document.getElementById('logoName');
+                        if (logoElement) logoElement.textContent = cached.restaurantName;
+                    }
+                } else {
+                    // Fallback to manual local storage read if data.js isn't ready
+                    const manualCache = JSON.parse(localStorage.getItem('cachedSettings') || '{}');
+                    if (manualCache.restaurantName) {
+                        const logoElement = document.getElementById('logoName');
+                        if (logoElement) logoElement.textContent = manualCache.restaurantName;
                     }
                 }
-            } catch(e) {}
+            } catch(e) { console.error("Fast load error", e); }
 
-            if (typeof initializeData === 'function') await initializeData();
-
-            const settings = getSettings();
-            if (settings.restaurantName) {
-                 const logoName = document.getElementById('logoName');
-                 if (logoName) logoName.textContent = settings.restaurantName;
+            if (typeof initializeData === 'function') {
+                await initializeData(); // Wait for fresh data
+                const settings = getSettings();
+                if (settings.restaurantName) {
+                     const logoName = document.getElementById('logoName');
+                     if (logoName) logoName.textContent = settings.restaurantName;
+                }
             }
 
             renderCheckoutItems();
