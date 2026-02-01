@@ -93,18 +93,44 @@ function renderOrders() {
         }
     });
     
-    // 1. Filter by Status
-    if (currentOrderFilter !== 'all') {
-        orders = orders.filter(o => o.status === currentOrderFilter);
-    }
-
-    // 2. Filter by Search Query (Name or Phone)
+    // 1. Filter by Search Query (Global Search - Overrides Status Tab)
+    // If user is searching, we look through ALL orders regardless of their status
     if (currentSearchQuery) {
-        orders = orders.filter(o => 
-            (o.customerName && o.customerName.toLowerCase().includes(currentSearchQuery)) ||
-            (o.customerPhone && o.customerPhone.includes(currentSearchQuery)) ||
-            (o.orderNumber && o.orderNumber.toString().includes(currentSearchQuery))
-        );
+        // Special Case: Search by Order Number specifically using "+" prefix (e.g., "+123")
+        if (currentSearchQuery.startsWith('+')) {
+            const numberQuery = currentSearchQuery.substring(1).trim(); 
+            if (numberQuery) {
+                orders = orders.filter(o => o.orderNumber && o.orderNumber.toString() === numberQuery);
+            }
+        } 
+        // Standard Broad Search
+        else {
+            orders = orders.filter(o => {
+                // Prepare searchable fields
+                const name = o.customerName ? o.customerName.toLowerCase() : '';
+                
+                // Robust Phone Search: Remove spaces/dashes, ensure string
+                const rawPhone = o.customerPhone ? o.customerPhone.toString() : '';
+                const cleanPhone = rawPhone.replace(/\s|-/g, ''); 
+                
+                // Product Names
+                const hasProduct = o.items && o.items.some(item => 
+                    item.name && item.name.toLowerCase().includes(currentSearchQuery)
+                );
+
+                return (
+                    name.includes(currentSearchQuery) ||
+                    rawPhone.includes(currentSearchQuery) || // Match "06 61" if user types "06 61"
+                    cleanPhone.includes(currentSearchQuery) || // Match "0661" if user types "0661" (against "06 61")
+                    hasProduct
+                );
+            });
+        }
+    } else {
+        // Only apply Status Filter if NOT searching
+        if (currentOrderFilter !== 'all') {
+            orders = orders.filter(o => o.status === currentOrderFilter);
+        }
     }
 
     // 3. Filter by Date
@@ -115,8 +141,31 @@ function renderOrders() {
         });
     }
     
-    // Check Alerts (Moved from dashboard logic if we want alerts here too)
-    // For now skipping duplicate alert logic to keep it simple
+    // 4. Sort logic
+    if (currentOrderFilter === 'all') {
+        const statusPriority = {
+            'new': 0,
+            'preparing': 1,
+            'ready': 2,
+            'onTheWay': 3,
+            'delivered': 4,
+            'cancelled': 5
+        };
+        
+        orders.sort((a, b) => {
+            const priorityA = statusPriority[a.status] !== undefined ? statusPriority[a.status] : 99;
+            const priorityB = statusPriority[b.status] !== undefined ? statusPriority[b.status] : 99;
+            
+            if (priorityA !== priorityB) {
+                return priorityA - priorityB;
+            }
+            // Secondary sort: Newest first within same status
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+    } else {
+        // Default sort: Newest first
+        orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
     
     if (orders.length === 0) {
         container.innerHTML = `
@@ -325,33 +374,36 @@ function viewOrderDetails(orderId) {
     const statusText = getStatusText(order.status);
 
     modalBody.innerHTML = `
-        <div class="order-details-container">
+        <div class="order-modal-content">
+            <!-- Header -->
             <div class="order-details-header">
                 <div class="order-id-badge">
                     <span class="label">رقم الطلب</span>
-                    <span class="value">#${order.orderNumber}</span>
+                    <div class="value">#${order.orderNumber}</div>
                 </div>
-                <div class="order-status-pill" style="background: ${statusColor}15; color: ${statusColor};">
+                <div class="order-status-pill" style="background: ${statusColor}15; color: ${statusColor}; align-self: center; display: inline-flex;">
                     <span class="dot"></span>
                     ${statusText}
                 </div>
             </div>
 
+            <!-- Customer Card -->
             <div class="details-card customer-card">
                 <h4 class="card-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     بيانات العميل
                 </h4>
+                
                 <div class="info-row">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
                     <span class="text">${order.customerName}</span>
                 </div>
+                
                 <div class="info-row">
-                    <a href="tel:${order.customerPhone}" class="phone-link">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span>
-                        <span class="text">${order.customerPhone}</span>
-                    </a>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span>
+                    <a href="tel:${order.customerPhone}" style="color: inherit; text-decoration: none;" class="text">${order.customerPhone}</a>
                 </div>
+
                 <div class="info-row">
                     <span class="icon">
                         ${order.orderType === 'delivery' ? 
@@ -361,35 +413,40 @@ function viewOrderDetails(orderId) {
                     </span>
                     <span class="text" style="color: var(--primary);">${order.orderType === 'delivery' ? 'طلب توصيل' : 'تناول في المطعم'}</span>
                 </div>
+
                 ${order.orderType === 'delivery' ? `
                 <div class="info-row">
                     <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span>
                     <span class="text">${order.address || (order.location ? 'موقع محدد على الخريطة' : '⚠️ العنوان غير محدد')}</span>
                 </div>
                 ` : ''}
+
+                <!-- Responsive Buttons Grid -->
                 ${locationButtons}
             </div>
 
             ${order.notes ? `
-            <div class="details-card notes-card">
+            <div class="details-card notes-card" style="background: #fffbea; border-color: #fef3c7;">
                 <h4 class="card-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    ملاحظات الطلب
+                    ملاحظات
                 </h4>
-                <p class="notes-text">${order.notes}</p>
+                <p class="notes-text" style="font-style: italic; color: #b45309;">${order.notes}</p>
             </div>
             ` : ''}
             
+            <!-- Items Card -->
             <div class="details-card items-card">
                 <h4 class="card-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                    قائمة المشتريات
+                    المشتريات (${order.items.length})
                 </h4>
                 <div class="items-list">
                     ${itemsHtml}
                 </div>
             </div>
             
+            <!-- Summary Card -->
             <div class="details-card summary-card">
                 <div class="summary-row">
                     <span>المجموع الفرعي</span>
@@ -399,15 +456,14 @@ function viewOrderDetails(orderId) {
                     <span>رسوم التوصيل</span>
                     <span>${formatPrice(order.deliveryCost)}</span>
                 </div>
-                <div class="summary-divider"></div>
                 <div class="summary-row total">
                     <span>الإجمالي النهائي</span>
                     <span>${formatPrice(order.total)}</span>
                 </div>
             </div>
 
-            <div class="modal-actions-footer">
-                <button onclick="printOrder('${order.id}')" class="btn-print-order">
+            <div class="modal-actions-footer" style="margin-top: 10px;">
+                <button onclick="printOrder('${order.id}')" class="btn-print-order" style="width: 100%; justify-content: center; background: #1e293b; color: white; padding: 14px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     طباعة الفاتورة
                 </button>
@@ -460,6 +516,7 @@ function printOrder(orderId) {
         <html lang="ar" dir="rtl">
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>فاتورة #${order.orderNumber}</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');

@@ -284,6 +284,7 @@ function getPopularMeals(period = 'all') {
             const key = `${item.mealId}-${item.sizeName || 'default'}`;
             if (!mealCounts[key]) {
                 mealCounts[key] = {
+                    id: key,
                     name: item.name,
                     sizeName: item.sizeName,
                     count: 0,

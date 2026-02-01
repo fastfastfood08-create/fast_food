@@ -24,6 +24,7 @@
         
         <!-- Sidebar Container -->
         <div id="sidebar-container"></div>
+        <script src="js/sidebar-loader.js"></script>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -181,8 +182,8 @@
                         </div>
                         
                         <div class="rating-footer">
-                            <div class="order-ref">
-                                <span>طلب #${order.orderNumber || order.id}</span>: <span title="${itemsSummary}" style="opacity: 0.8;">${truncateText(itemsSummary, 30)}</span>
+                            <div class="order-ref" style="font-size: 0.9rem; color: #6b7280;">
+                                <span>طلب #${order.orderNumber || order.id}: ${order.customerName}</span>
                             </div>
                         </div>
                     </div>

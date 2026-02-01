@@ -656,9 +656,8 @@ function renderRatedOrders() {
             ` : '<div style="color: #9ca3af; font-size: 0.9rem; font-style: italic;">(بدون تعليق كتابي)</div>'}
             
             <div style="border-top: 1px solid #f3f4f6; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 0.9rem;">
-                    <span style="color: #6b7280;">عدد المنتجات:</span> 
-                    <strong>${order.items.reduce((sum, i) => sum + i.quantity, 0)} منتجات</strong>
+                <div style="font-size: 0.9rem; color: #6b7280;">
+                    طلب #${order.orderNumber}: ${order.customerName}
                 </div>
                 <button onclick="viewOrderDetails('${order.id}')" class="btn btn-secondary btn-sm">تفاصل الطلب</button>
             </div>

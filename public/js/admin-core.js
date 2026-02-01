@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // If we are in SPA mode (re-triggered manually), skip core init
     if (window.adminApp.isSPA) {
         checkLogin();
-        // Just re-highlight sidebar based on new URL
         highlightSidebar();
+        // Reveal immediately if SPA re-init
+        requestAnimationFrame(() => document.body.classList.add('loaded'));
         return;
     }
     
@@ -19,39 +20,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkLogin();
     setupAdminNavigation();
     
-    // Load sidebar and start persistent badge updates
     await loadSidebar();
     highlightSidebar();
     
-    // Hide Loader (Initial Load) - Wait until data is fetched
-    const loader = document.getElementById('pageLoader');
-    if (loader) {
-        const hideLoader = () => {
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    loader.classList.remove('active');
-                }, 400);
-            }, 300); // Small breathe time
-        };
+    // Reveal Page Logic
+    const revealPage = () => {
+         // Tiny delay to ensure paint
+         setTimeout(() => document.body.classList.add('loaded'), 100);
+    };
 
-        // If data is already loaded or we wait for it
-        const timeout = setTimeout(hideLoader, 3000); // Safe limit
-        
-        // ⚡ Fast Check: If we have orders (cache), hide immediately!
-        if (typeof getOrders === 'function' && getOrders().length > 0) {
+    window.revealPage = revealPage;
+
+    // Check Data State
+    if (typeof getOrders === 'function' && getOrders().length > 0) {
+         revealPage();
+    } else {
+        const timeout = setTimeout(revealPage, 2500); 
+        document.addEventListener('data-ready', () => {
              clearTimeout(timeout);
-             hideLoader();
-        } else {
-            document.addEventListener('data-ready', () => {
-                clearTimeout(timeout);
-                hideLoader();
-            }, { once: true });
-        }
+             revealPage();
+        }, { once: true });
     }
     
-    // Listen for browser back/forward buttons
     window.addEventListener('popstate', (event) => {
         if (event.state && event.state.url) {
             spaNavigate(event.state.url, false);
@@ -74,49 +64,19 @@ function setupAdminNavigation() {
 }
 
 /**
- * Smart Navigation: Fetch content via AJAX and swap without reload
- */
-/**
- * Smart Navigation: Refined Gradient Ring Transition
- * A beautiful, light ring spins around the brand name during transition.
- */
-/**
- * Smart Navigation: Refined Gradient Ring Transition
- * Shows animation then performs a HARD navigation to ensure fresh scripts/state.
+ * Smart Navigation: CSS Curtain Strategy
+ * Removes 'loaded' class -> CSS shows curtain -> Wait -> Navigate
  */
 async function spaNavigate(url, pushState = true) {
-    if (window.location.pathname.endsWith(url)) return;
+    if (window.location.pathname.endsWith(url) && !url.includes('#')) return;
 
-    // 1. Get/Create Overlay
-    let overlay = document.querySelector('.transition-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'transition-overlay';
-        
-        // Get Brand Name
-        const brand = document.querySelector('.sidebar-brand h2') || { innerText: 'مطعمي' };
-        const name = brand.innerText;
-        
-        overlay.innerHTML = `
-            <div class="transition-content">
-                <div class="transition-ring"></div>
-                <div class="transition-text">${name}</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    } else {
-        const brand = document.querySelector('.sidebar-brand h2') || { innerText: 'مطعمي' };
-        const textEl = overlay.querySelector('.transition-text');
-        if (textEl) textEl.innerText = brand.innerText;
-    }
+    // 1. Trigger Exit (Show Curtain)
+    document.body.classList.remove('loaded');
 
-    // 2. Fade In (Fast & Light)
-    overlay.classList.add('active');
-
-    // Wait for fade in (300ms) - Feels snappy
+    // 2. Wait for fade in of curtain (300ms)
     await new Promise(r => setTimeout(r, 300));
 
-    // 3. HARD NAVIGATION (Fixes stale script issues)
+    // 3. Navigate
     window.location.href = url;
 }
 
@@ -130,82 +90,6 @@ function loadScript(src) {
         script.onload = resolve;
         script.onerror = resolve; // Continue even if fails to avoid blocking
         document.body.appendChild(script);
-    });
-}
-
-/**
- * Detects and injects new CSS files from the fetched page
- */
-function injectMissingStyles(doc) {
-    return new Promise((resolve) => {
-        const newLinks = doc.querySelectorAll('link[rel="stylesheet"]');
-        const currentLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.getAttribute('href'));
-        
-        const loadPromises = [];
-
-        newLinks.forEach(link => {
-            const href = link.getAttribute('href');
-            // If stylesheet is not present, add it
-            if (href && !currentLinks.some(current => current.includes(href))) {
-                const newLink = document.createElement('link');
-                newLink.rel = 'stylesheet';
-                newLink.href = href;
-                
-                // Add promise to wait for loading (optional but smoother)
-                const p = new Promise(r => {
-                    newLink.onload = r;
-                    newLink.onerror = r; // Proceed anyway on error
-                });
-                loadPromises.push(p);
-                
-                document.head.appendChild(newLink);
-            }
-        });
-
-        // Resolve when new critical CSS is loaded (timeout 500ms to avoid hanging)
-        if (loadPromises.length > 0) {
-            Promise.all(loadPromises).finally(resolve);
-            setTimeout(resolve, 500);
-        } else {
-            resolve();
-        }
-    });
-}
-
-/**
- * Re-injects a script to ensure it executes in the new DOM context.
- * Fetches the script content and wraps it in a block scope to prevent
- * "Identifier has already been declared" errors for let/const variables
- * when re-loading the same script (e.g. Dashboard -> Orders -> Dashboard).
- */
-function reInjectScript(src) {
-    return new Promise(async (resolve) => {
-        // Remove existing script if it exists to avoid duplicate tags (optional)
-        const oldScript = document.querySelector(`script[src="${src}"]`);
-        if (oldScript) oldScript.remove();
-
-        try {
-            const response = await fetch(src);
-            const text = await response.text();
-            
-            const script = document.createElement('script');
-            // Wrap in block scope to protect user's variables
-            script.textContent = `
-                {
-                    // Block Scope Sandbox for ${src}
-                    ${text}
-                }
-                //# sourceURL=${src}
-            `;
-            
-            document.body.appendChild(script);
-            // resolve immediately after append
-            resolve();
-            
-        } catch (e) {
-            console.error('Failed to reload script:', src, e);
-            resolve();
-        }
     });
 }
 
@@ -238,6 +122,34 @@ function cleanupPage() {
 async function loadSidebar() {
     const container = document.getElementById('sidebar-container');
     if (!container) return;
+    
+    // Check if already loaded by sidebar-loader.js
+    if (container.getAttribute('data-loaded') === 'true') {
+        startPersistentBadgeUpdates();
+        // Still fetch to check for updates (silent re-validation)
+        try {
+             // 1. Try Cache First (Instant) - already done by loader, but good for consistent state access
+            const cachedHtml = sessionStorage.getItem('adminSidebarCache');
+            
+            const response = await fetch('admin-sidebar.html');
+            const html = await response.text();
+            
+            // 2. Only update if changed
+            if (html !== cachedHtml) {
+                container.innerHTML = html;
+                sessionStorage.setItem('adminSidebarCache', html);
+                startPersistentBadgeUpdates();
+                
+                 // Re-highlight since we replaced content
+                highlightSidebar();
+            }
+        } catch (e) { console.error('Silent sidebar validation failed', e); }
+        
+        window.dispatchEvent(new Event('sidebar-loaded'));
+        return;
+    }
+
+    // --- Fallback for first load (if loader script didn't run or cache was empty) ---
     
     // 1. Try Cache First (Instant)
     const cachedHtml = sessionStorage.getItem('adminSidebarCache');
@@ -324,8 +236,8 @@ function startPersistentBadgeUpdates() {
         }
     }, 500);
 
-    // Persistent interval    // ⚡ Poll Removed: Badges update via 'orders-updated' event listener in admin-core.js
-    // which triggers updateBadges()
+    // Persistent interval
+    window.adminApp.badgeInterval = 1; // Mark as running to avoid duplicates, actual updates are event-driven
 }
 
 function checkLogin() {
@@ -388,4 +300,3 @@ window.addEventListener('unhandledrejection', function(event) {
         window.location.href = 'admin-login.html';
     }
 });
-

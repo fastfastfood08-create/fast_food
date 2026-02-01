@@ -274,32 +274,26 @@ async function deleteCategoryData(id) {
     
     const targetId = String(id); // Normalize to string for comparison
     
-    // 1. Precise Identification: Find all meals strictly in this category
-    // Using String() ensures we match "5" with 5
-    const mealsToDelete = appState.meals.filter(m => String(m.categoryId) === targetId);
-    
-    // 2. Remove meals from local state (Keep only those NOT matching targetId)
+    // Optimistic Update: Remove from local state immediately
+    // 1. Remove associated meals locally
     appState.meals = appState.meals.filter(m => String(m.categoryId) !== targetId);
     
-    // 3. Remove category from local state
+    // 2. Remove category locally
     appState.categories = appState.categories.filter(c => String(c.id) !== targetId);
     
-    // 4. Update Backend
+    // 3. Update Backend
     try {
-        // Manually delete the specific meals we identified
-        const deleteMealPromises = mealsToDelete.map(meal => 
-            ApiClient.request(`/meals?id=${meal.id}`, { method: 'DELETE' })
-                .catch(err => console.error('Failed to delete meal ' + meal.id, err))
-        );
-        
-        await Promise.all(deleteMealPromises);
-
-        // Then delete the category ONLY (No cascade flag to prevent backend side-effects)
-        // We have already handled the children manually.
+        // We rely on DB 'ON DELETE CASCADE' to remove meals automatically.
+        // Direct delete of category is faster and safer.
         await ApiClient.request(`/categories?id=${id}`, { method: 'DELETE' });
-        
+        showToast('تم حذف القسم', 'success');
     } catch(e) {
         console.error("Delete category failed", e);
+        // Optional: Revert local state here if strict consistency needed?
+        // usually refresh handles it.
+        showToast('فشل حذف القسم من الخادم', 'error');
+        // Throw so caller knows
+        throw e;
     }
 }
 

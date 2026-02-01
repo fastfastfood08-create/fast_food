@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(svgContent, 'image/svg+xml');
                     const svgEl = doc.querySelector('svg');
+
+                    // Safety Check: Reject SVGs with embedded images (Base64)
+                    if (svgContent.includes('base64') || svgContent.includes('data:image')) {
+                        showToast('عذراً، هذا الملف يحتوي على صور مدمجة (Base64) وهو كبير جداً. يرجى استخدام أيقونة SVG بسيطة (Vector Only).', 'error');
+                        return;
+                    }
                     
                     if (svgEl) {
                         svgEl.removeAttribute('width');
@@ -48,8 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         svgEl.style.height = '100%';
                         svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
                         
+                        svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                        
                         const serializer = new XMLSerializer();
-                        const newSvgContent = serializer.serializeToString(svgEl);
+                        let newSvgContent = serializer.serializeToString(svgEl);
+                        
+                        // Minify SVG: Remove newlines, comments, and extra spaces to fit in DB
+                        newSvgContent = newSvgContent
+                            .replace(/<!--[\s\S]*?-->/g, '') // Remove comments
+                            .replace(/\n/g, ' ') // Remove newlines
+                            .replace(/\r/g, ' ')
+                            .replace(/\t/g, ' ')
+                            .replace(/\s\s+/g, ' ') // Collapse spaces
+                            .replace(/>\s+</g, '><'); // remove space between tags
                         
                         document.getElementById('categoryIcon').value = newSvgContent;
                         
@@ -148,10 +165,39 @@ function closeCategoryModal() {
     document.getElementById('categoryModal').classList.remove('active');
 }
 
+// ===================================
+// Helper: Action Loader
+// ===================================
+function createActionLoader() {
+    if (document.getElementById('globalActionLoader')) return;
+    
+    const loader = document.createElement('div');
+    loader.id = 'globalActionLoader';
+    loader.className = 'action-loader-overlay';
+    loader.innerHTML = `
+        <div class="action-loader-spinner"></div>
+        <div class="action-loader-text">جاري المعالجة...</div>
+    `;
+    document.body.appendChild(loader);
+}
+
+function showActionLoader(text = 'جاري المعالجة...') {
+    createActionLoader();
+    const loader = document.getElementById('globalActionLoader');
+    const textEl = loader.querySelector('.action-loader-text');
+    if (textEl) textEl.textContent = text;
+    loader.classList.add('active');
+}
+
+function hideActionLoader() {
+    const loader = document.getElementById('globalActionLoader');
+    if (loader) loader.classList.remove('active');
+}
+
+
 async function saveCategory(event) {
     event.preventDefault();
     const submitBtn = document.querySelector('#categoryForm button[type="submit"]');
-    if (submitBtn) { submitBtn.textContent = '⏳ جاري الحفظ...'; submitBtn.disabled = true; }
     
     try {
         const id = document.getElementById('categoryId').value;
@@ -159,11 +205,18 @@ async function saveCategory(event) {
         const icon = document.getElementById('categoryIcon').value || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
         
         if (!name) throw new Error('يرجى إدخال اسم القسم');
+
+        showActionLoader(id ? 'جاري تحديث القسم...' : 'جاري إضافة القسم...');
         
         if (id) {
-            await updateCategoryData({ id: parseInt(id), name, icon, active: true });
+            // Preserve existing consistency (especially 'active' status)
+            const existingCat = getCategories().find(c => c.id == id);
+            const isActive = existingCat ? existingCat.active : true;
+            
+            await updateCategoryData({ id: parseInt(id), name, icon, active: isActive });
             showToast('تم تحديث القسم', 'success');
         } else {
+            // New Category
             await createCategoryData({ name, icon, order: getCategories().length + 1, active: true });
             showToast('تم إضافة القسم بنجاح', 'success');
         }
@@ -173,7 +226,7 @@ async function saveCategory(event) {
     } catch (error) {
         showToast(error.message || 'خطأ غير معروف', 'error');
     } finally {
-        if (submitBtn) { submitBtn.textContent = 'حفظ'; submitBtn.disabled = false; }
+        hideActionLoader();
     }
 }
 
@@ -183,15 +236,26 @@ function editCategory(id) {
 
 async function deleteCategory(id) {
     if (confirm('حذف هذا القسم سيحذف جميع الوجبات التابعة له! هل أنت متأكد؟')) {
-        await deleteCategoryData(id);
-        renderCategories();
-        showToast('تم حذف القسم', 'warning');
+        try {
+            showActionLoader('جاري حذف القسم...');
+            await deleteCategoryData(id);
+            renderCategories();
+            showToast('تم حذف القسم', 'warning');
+        } catch (e) {
+            console.error(e);
+            showToast('حدث خطأ أثناء الحذف', 'error');
+        } finally {
+            hideActionLoader();
+        }
     }
 }
 
 async function toggleCategoryActive(id) {
     const category = getCategories().find(c => c.id === id);
     if (category) {
+        // Toggle is fast, maybe no loader or just small one? 
+        // User requested loader for "Delete or Upload". Toggle is usually instant.
+        // We skip loader for toggle to keep it snappy.
         const updated = { ...category, active: !category.active };
         await updateCategoryData(updated);
         renderCategories();
