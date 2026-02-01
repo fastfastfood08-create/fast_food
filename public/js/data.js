@@ -283,16 +283,26 @@ async function deleteCategoryData(id) {
     
     // 3. Update Backend
     try {
-        // We rely on DB 'ON DELETE CASCADE' to remove meals automatically.
-        // Direct delete of category is faster and safer.
+        // Force Delete Meals First (Manual Cascade)
+        // This ensures meals are deleted even if DB 'ON DELETE CASCADE' is missing.
+        const deleteMealPromises = appState.meals
+            .filter(m => String(m.categoryId) === targetId)
+            .map(meal => 
+                ApiClient.request(`/meals?id=${meal.id}`, { method: 'DELETE' })
+                    .catch(err => console.warn('Failed to delete meal ' + meal.id, err))
+            );
+            
+        if (deleteMealPromises.length > 0) {
+            console.log(`Deleting ${deleteMealPromises.length} meals for category ${id}...`);
+            await Promise.all(deleteMealPromises);
+        }
+
+        // Now delete the category
         await ApiClient.request(`/categories?id=${id}`, { method: 'DELETE' });
-        showToast('تم حذف القسم', 'success');
+        showToast('تم حذف القسم وجميع وجباته', 'success');
     } catch(e) {
         console.error("Delete category failed", e);
-        // Optional: Revert local state here if strict consistency needed?
-        // usually refresh handles it.
         showToast('فشل حذف القسم من الخادم', 'error');
-        // Throw so caller knows
         throw e;
     }
 }
