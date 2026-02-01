@@ -31,47 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const svgContent = e.target.result;
-                    if (!svgContent.trim().startsWith('<svg') && !svgContent.includes('<svg')) {
-                         showToast('الملف لا يحتوي على كود SVG صحيح', 'error');
-                         return;
-                    }
+                    const base64Content = e.target.result;
                     
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(svgContent, 'image/svg+xml');
-                    const svgEl = doc.querySelector('svg');
-
-                    // Safety Check Removed as per user request to allow ANY icon
+                    // Use Base64 string directly - Safest for "Any Icon"
+                    document.getElementById('categoryIcon').value = base64Content;
                     
-                    if (svgEl) {
-                        svgEl.removeAttribute('width');
-                        svgEl.removeAttribute('height');
-                        svgEl.style.width = '100%';
-                        svgEl.style.height = '100%';
-                        svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                        
-                        const serializer = new XMLSerializer();
-                        let newSvgContent = serializer.serializeToString(svgEl);
-                        
-                        // Basic Minify (Safe)
-                        newSvgContent = newSvgContent
-                            .replace(/<!--[\s\S]*?-->/g, '') 
-                            .replace(/\n/g, ' ') 
-                            .replace(/\r/g, ' ')
-                            .replace(/\t/g, ' ')
-                            .replace(/\s\s+/g, ' ') 
-                            .replace(/>\s+</g, '><');
-
-                        document.getElementById('categoryIcon').value = newSvgContent;
-                        
-                        const preview = document.getElementById('categoryIconPreview');
-                        preview.innerHTML = newSvgContent;
-                        preview.style.display = 'flex';
-                    } else {
-                         showToast('ملف SVG غير صالح', 'error');
-                    }
+                    const preview = document.getElementById('categoryIconPreview');
+                    preview.innerHTML = `<img src="${base64Content}" style="width:100%; height:100%; object-fit:contain;">`;
+                    preview.style.display = 'flex';
                 }
-                reader.readAsText(file);
+                reader.readAsDataURL(file); // Read as Safe Base64 String
             }
         });
     }
@@ -100,7 +69,11 @@ function renderCategories() {
             
             <div class="category-card-body">
                 <div class="category-icon-wrapper ${!cat.active ? 'dimmed' : ''}">
-                    <span class="category-icon">${cat.icon}</span>
+                    <span class="category-icon">
+                        ${(cat.icon && (cat.icon.startsWith('data:') || cat.icon.startsWith('http'))) 
+                            ? `<img src="${cat.icon}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;">` 
+                            : cat.icon}
+                    </span>
                 </div>
                 <h3 class="category-name">${cat.name}</h3>
             </div>
