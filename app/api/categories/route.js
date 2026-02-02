@@ -2,30 +2,6 @@ import { NextResponse } from 'next/server';
 import { revalidateTag, unstable_cache } from 'next/cache';
 import prisma from '@/app/lib/prisma';
 
-const getCategories = unstable_cache(
-    async (fetchAll = false) => {
-        const whereClause = fetchAll ? {} : { active: true };
-        return await prisma.category.findMany({
-            select: { id: true, name: true, icon: true, order: true, active: true },
-            orderBy: { order: 'asc' },
-            where: whereClause
-        });
-    },
-    ['categories-list'], // Base key
-    { tags: ['categories'] }
-);
-
-export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const includeAll = searchParams.get('all') === 'true';
-    
-    // We must pass the dynamic part to key explicitly if unstable_cache wrapper doesn't handle args automatically (it doesn't for the key array)
-    // Actually, distinct function calls with different arguments need distinct keys.
-    // The previous definition was flawed. Let's redefine it properly here.
-  } catch (e) {} // unreachable placeholder
-}
-
 // Correct approach: Define the cached function OUTSIDE with strict keys
 const getCategoriesCached = async (fetchAll) => {
     const fn = unstable_cache(
