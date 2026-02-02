@@ -252,9 +252,34 @@ function renderMeals(categoryId = 'all') {
         return `
             <div class="meal-card-admin ${!meal.active ? 'meal-inactive' : ''}" onclick="openMealModal(${meal.id})">
                 <div class="meal-card-image">
-                    ${window.getMealImageOrPlaceholder 
-                        ? window.getMealImageOrPlaceholder(meal, '', 'object-fit: contain;', 1.1) 
-                        : (meal.image ? `<img src="${meal.image}" alt="${meal.name}" style="object-fit: contain;">` : '')}
+                    ${(() => {
+                        // Smart Image Logic
+                        // 1. Try Meal Image
+                        if (meal.image) return `<img src="${meal.image}" alt="${meal.name}" style="object-fit: contain;">`;
+                        
+                        // 2. Try Category Icon Fallback
+                        if (cat && cat.icon) {
+                            const icon = cat.icon.trim();
+                            // Check if it's an image path (extension, path, url)
+                            if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.includes('/') || icon.startsWith('http') || icon.startsWith('data:')) {
+                                let src = icon;
+                                // Handle relative paths (e.g. "icons/foo.svg") by prepending / if needed
+                                // (Browsers usually handle "icons/" relative to current page, but in admin panel "/admin/meals", "icons/..." might fail if not absolute /icons/...)
+                                // Best to ensure it starts with / if it looks like a local static file
+                                if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
+                                    src = '/' + src;
+                                }
+                                return `<img src="${src}" alt="${cat.name}" style="object-fit: contain; padding: 20px;">`;
+                            } 
+                            // 3. Text/Emoji Fallback
+                            else {
+                                return `<div style="font-size: 3rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${icon}</div>`;
+                            }
+                        }
+                        
+                        // 4. Default Placeholder
+                        return '';
+                    })()}
                 </div>
                 <div class="meal-card-content">
                     <div class="meal-header">

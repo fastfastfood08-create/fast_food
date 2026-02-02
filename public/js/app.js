@@ -298,15 +298,54 @@ function createMealCard(meal, index) {
         ? 'يبدأ من ' 
         : '';
     
+    // Find category to access its icon/name
+    const category = getCategories().find(c => c.id === meal.categoryId);
+    
+    // Determine Image Content
+    let imageContent = '';
+    
+    if (window.getMealImageOrPlaceholder) {
+        // Use existing helper if available (it might already handle fallbacks, but let's be explicit)
+        // If the helper is just for formatting/sizing, we might need to pass the fallback manually?
+        // Let's assume we want to enforce Category Image/Icon as fallback here.
+        
+        if (meal.image) {
+             imageContent = window.getMealImageOrPlaceholder(meal, '', '', 2.2);
+        } else if (category && category.icon) {
+             // Fallback to Category Icon
+             if (category.icon.match(/\.(svg|png|jpg|jpeg)$/i) || category.icon.startsWith('data:') || category.icon.startsWith('http') || category.icon.startsWith('/')) {
+                 imageContent = `<img src="${category.icon}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;">`;
+             } else {
+                 // Emoji or Text Icon
+                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${category.icon}</div>`;
+             }
+        } else {
+             // Fallback default
+             imageContent = `<img src="/icons/default-meal.svg" alt="${meal.name}" loading="lazy">`; 
+        }
+    } else {
+        // Manual Logic (fallback if helper missing)
+        if (meal.image) {
+            imageContent = `<img src="${meal.image}" alt="${meal.name}" loading="lazy">`;
+        } else if (category && category.icon) {
+             if (category.icon.match(/\.(svg|png|jpg|jpeg)$/i) || category.icon.startsWith('data:') || category.icon.startsWith('http') || category.icon.startsWith('/')) {
+                 imageContent = `<img src="${category.icon}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;">`;
+             } else {
+                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${category.icon}</div>`;
+             }
+        }
+    }
+
     return `
         <div class="meal-card fade-in" style="animation-delay: ${index * 0.05}s" onclick="openMealModal(${meal.id})">
             <div class="meal-image">
-                ${window.getMealImageOrPlaceholder 
-                    ? window.getMealImageOrPlaceholder(meal, '', '', 2.2) 
-                    : (meal.image ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy">` : '')}
+                ${imageContent}
             </div>
             <div class="meal-content">
-                <h3 class="meal-name">${meal.name}</h3>
+                <div class="meal-header-row" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                    <h3 class="meal-name" style="margin:0;">${meal.name}</h3>
+                    ${category ? `<span class="badge" style="font-size:0.75rem; background:var(--surface-hover); color:var(--text-secondary); padding:2px 8px; border-radius:12px; white-space:nowrap;">${category.name}</span>` : ''}
+                </div>
                 <p class="meal-description">${meal.description}</p>
                 <div class="meal-footer">
                     <div class="meal-price">
