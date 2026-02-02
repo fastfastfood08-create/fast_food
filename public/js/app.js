@@ -174,11 +174,23 @@ function renderCategories() {
     // إضافة باقي الفئات
     html += categories.map(cat => {
         let iconHtml;
-                // If it looks like an image path or data URL
-                if (cat.icon.startsWith('data:') || cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('/icons/') || cat.icon.includes('icons/') || cat.icon.match(/\.(svg|png|jpg|jpeg)$/i)) {
-             iconHtml = `<img src="${cat.icon}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;">`;
-        } else {
-             iconHtml = cat.icon;
+        const icon = cat.icon ? cat.icon.trim() : '';
+
+        // 1. Check for Inline SVG
+        if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
+             iconHtml = icon;
+        }
+        // 2. Check for Image Path (Extensions, HTTP, Data URI, Slash)
+        else if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/') || icon.includes('icons/')) {
+             let src = icon;
+             if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
+                 src = '/' + src;
+             }
+             iconHtml = `<img src="${src}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
+        } 
+        // 3. Fallback (Emoji/Text)
+        else {
+             iconHtml = icon;
         }
 
         return `
@@ -312,12 +324,23 @@ function createMealCard(meal, index) {
         if (meal.image) {
              imageContent = window.getMealImageOrPlaceholder(meal, '', '', 2.2);
         } else if (category && category.icon) {
-             // Fallback to Category Icon
-             if (category.icon.match(/\.(svg|png|jpg|jpeg)$/i) || category.icon.startsWith('data:') || category.icon.startsWith('http') || category.icon.startsWith('/')) {
-                 imageContent = `<img src="${category.icon}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;">`;
-             } else {
-                 // Emoji or Text Icon
-                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${category.icon}</div>`;
+             const icon = category.icon.trim();
+             
+             // A. Inline SVG
+             if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
+                 imageContent = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:20px;">${icon}</div>`;
+             }
+             // B. Image Path
+             else if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/')) {
+                 let src = icon;
+                 if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
+                     src = '/' + src;
+                 }
+                 imageContent = `<img src="${src}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
+             } 
+             // C. Emoji/Text
+             else {
+                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${icon}</div>`;
              }
         } else {
              // Fallback default
