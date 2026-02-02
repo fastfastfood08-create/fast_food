@@ -96,10 +96,47 @@ export async function DELETE(request) {
         const numericId = parseInt(id);
         if (isNaN(numericId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
-        await prisma.category.delete({
-            where: { id: numericId }
+        // 1. Fetch associated meals to clean up their images
+        const meals = await prisma.meal.findMany({
+            where: { categoryId: numericId },
+            select: { id: true, image: true }
         });
+
+        // 2. Delete physical image files
+        if (meals.length > 0) {
+            const fs = require('fs/promises');
+            const path = require('path');
+            
+            await Promise.all(meals.map(async (meal) => {
+                if (meal.image && meal.image.startsWith('/uploads/')) {
+                    try {
+                        const filePath = path.join(process.cwd(), 'public', meal.image);
+                        await fs.unlink(filePath);
+                        console.log(`Deleted file: ${filePath}`);
+                    } catch (e) {
+                         // Ignore file not found, log others
+                         if (e.code !== 'ENOENT') console.error(`Error deleting file for meal ${meal.id}:`, e);
+                    }
+                }
+            }));
+        }
+
+        // 3. Perform Database Deletion (Transaction)
+        await prisma.$transaction(async (tx) => {
+            // Explicitly delete meals first to ensure they are gone (fixes "meals still exist" issue)
+            await tx.meal.deleteMany({
+                where: { categoryId: numericId }
+            });
+            
+            // Delete the category
+            await tx.category.delete({
+                where: { id: numericId }
+            });
+        });
+
         revalidateTag('categories');
+        revalidateTag('meals'); // Also refresh meals cache
+        
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Category Delete Error:", error);
