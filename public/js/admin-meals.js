@@ -100,6 +100,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ===================================
+// Helper: Action Loader (Copied from Admin Categories)
+// ===================================
+function createActionLoader() {
+    if (document.getElementById('globalActionLoader')) return;
+    
+    const loader = document.createElement('div');
+    loader.id = 'globalActionLoader';
+    loader.className = 'action-loader-overlay';
+    loader.innerHTML = `
+        <div class="action-loader-spinner"></div>
+        <div class="action-loader-text">جاري المعالجة...</div>
+    `;
+    document.body.appendChild(loader);
+}
+
+function showActionLoader(text = 'جاري المعالجة...') {
+    createActionLoader();
+    const loader = document.getElementById('globalActionLoader');
+    const textEl = loader.querySelector('.action-loader-text');
+    if (textEl) textEl.textContent = text;
+    loader.classList.add('active');
+}
+
+function hideActionLoader() {
+    const loader = document.getElementById('globalActionLoader');
+    if (loader) loader.classList.remove('active');
+}
+
 function initMealsPage() {
     const categories = getCategories();
     const select = document.getElementById('mealsCategorySelect');
@@ -561,9 +590,17 @@ function bulkToggleMeals(activate) {
 
 async function deleteMealFunc(id) {
     if (confirm('هل أنت متأكد من حذف الوجبة؟')) {
-        await deleteMealData(id);
-        renderMeals();
-        showToast('تم حذف الوجبة', 'warning');
+        try {
+             showActionLoader('جاري حذف الوجبة...');
+             await deleteMealData(id);
+             renderMeals();
+             showToast('تم حذف الوجبة', 'warning');
+        } catch (e) {
+             console.error(e);
+             showToast('حدث خطأ أثناء الحذف', 'error');
+        } finally {
+             hideActionLoader();
+        }
     }
 }
 

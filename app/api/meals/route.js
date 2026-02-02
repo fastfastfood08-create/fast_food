@@ -162,6 +162,31 @@ export async function DELETE(request) {
         const numericId = parseInt(id);
         if(isNaN(numericId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
+        // 1. Get the meal first to find image path
+        const meal = await prisma.meal.findUnique({
+            where: { id: numericId },
+            select: { image: true }
+        });
+
+        if (meal && meal.image) {
+            // Check if it's a local upload
+            if (meal.image.startsWith('/uploads/')) {
+                 const fs = require('fs/promises');
+                 const path = require('path');
+                 // Image path is relative to public folder
+                 // meal.image is like "/uploads/meals/xyz.jpg"
+                 const filePath = path.join(process.cwd(), 'public', meal.image);
+                 
+                 try {
+                     await fs.unlink(filePath);
+                     console.log(`Deleted image file: ${filePath}`);
+                 } catch (err) {
+                     console.warn(`Failed to delete image file: ${filePath}`, err);
+                     // Continue to delete record anyway
+                 }
+            }
+        }
+
         await prisma.meal.delete({
             where: { id: numericId }
         });
