@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Top Bun Gradient -->
+    <radialGradient id="topBunGrad" cx="50%" cy="30%" r="70%" fx="50%" fy="30%">
+      <stop offset="0%" style="stop-color:#FFBE5C;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F58E00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97500;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Top Bun Shine -->
+    <radialGradient id="bunShine" cx="50%" cy="20%" r="50%" fx="50%" fy="20%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Bottom Bun Gradient -->
+    <linearGradient id="bottomBunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB84D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C26900;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Meat Gradient -->
+    <linearGradient id="meatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#754C24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A2E12;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Cheese Gradient -->
+    <linearGradient id="cheeseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFAB00;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Lettuce Gradient -->
+    <linearGradient id="lettuceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#66CC33;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#338A17;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Tomato Gradient -->
+    <linearGradient id="tomatoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF5252;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C62828;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Bottom Bun -->
+  <path d="M100 360 C100 360 100 450 256 450 C412 450 412 360 412 360 L100 360 Z" fill="url(#bottomBunGrad)" stroke="#A05000" stroke-width="2"/>
+  <path d="M100 360 Q256 380 412 360" fill="none" stroke="#D97500" stroke-width="4" opacity="0.5" />
+
+  <!-- Lettuce (Bottom Layer) -->
+  <path d="M90 350 Q110 380 140 350 T190 350 T240 350 T290 350 T340 350 T390 350 T422 350 L412 330 L100 330 Z" fill="url(#lettuceGrad)" stroke="#2E7D32" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Meat Patty -->
+  <rect x="95" y="290" width="322" height="50" rx="15" ry="15" fill="url(#meatGrad)" stroke="#3E2723" stroke-width="2"/>
+
+  <!-- Cheese (Melting) -->
+  <!-- Top flat part -->
+  <path d="M95 292 L417 292 L417 280 L95 280 Z" fill="#FFC107"/> 
+  <!-- Melting drips - Smoother curves using Cubic Beziers -->
+  <path d="M95 291 
+           L115 291 
+           C115 291 120 335 145 335 
+           C170 335 175 291 175 291 
+           L210 291 
+           C210 291 220 350 255 350 
+           C290 350 300 291 300 291 
+           L340 291 
+           C340 291 350 325 370 325 
+           C390 325 400 291 400 291 
+           L417 291" 
+           fill="url(#cheeseGrad)" stroke="#FFA000" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Tomato -->
+  <path d="M100 270 L412 270 L412 285 L100 285 Z" fill="url(#tomatoGrad)" stroke="#B71C1C" stroke-width="1"/>
+  
+  <!-- Top Bun -->
+  <path d="M80 270 C80 150 160 80 256 80 C352 80 432 150 432 270 Z" fill="url(#topBunGrad)" stroke="#C66900" stroke-width="2"/>
+  
+  <!-- Shine on Top Bun -->
+  <ellipse cx="256" cy="180" rx="120" ry="60" fill="url(#bunShine)" />
+
+  <!-- Sesame Seeds -->
+  <g fill="#FFE0B2">
+    <ellipse cx="200" cy="150" rx="4" ry="7" transform="rotate(-20 200 150)" />
+    <ellipse cx="240" cy="120" rx="4" ry="7" transform="rotate(-10 240 120)" />
+    <ellipse cx="280" cy="130" rx="4" ry="7" transform="rotate(10 280 130)" />
+    <ellipse cx="320" cy="160" rx="4" ry="7" transform="rotate(25 320 160)" />
+    <ellipse cx="160" cy="190" rx="4" ry="7" transform="rotate(-40 160 190)" />
+    <ellipse cx="350" cy="200" rx="4" ry="7" transform="rotate(40 350 200)" />
+    <ellipse cx="256" cy="170" rx="4" ry="7" />
+    <ellipse cx="220" cy="200" rx="4" ry="7" transform="rotate(-15 220 200)" />
+    <ellipse cx="300" cy="210" rx="4" ry="7" transform="rotate(15 300 210)" />
+  </g>
+
+</svg>

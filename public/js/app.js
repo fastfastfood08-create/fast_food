@@ -163,7 +163,7 @@ function renderCategories() {
     
     // إضافة زر "الكل"
     let html = `
-        <button class="category-btn ${!currentCategory ? 'active' : ''}" onclick="filterByCategory(null)">
+        <button class="category-card ${!currentCategory ? 'active' : ''}" onclick="filterByCategory(null)">
             <span class="category-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/></svg>
             </span>
@@ -172,12 +172,22 @@ function renderCategories() {
     `;
     
     // إضافة باقي الفئات
-    html += categories.map(cat => `
-        <button class="category-btn ${currentCategory === cat.id ? 'active' : ''}" onclick="filterByCategory(${cat.id})">
-            <span class="category-icon">${cat.icon}</span>
+    html += categories.map(cat => {
+        let iconHtml;
+                // If it looks like an image path or data URL
+                if (cat.icon.startsWith('data:') || cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('/icons/') || cat.icon.includes('icons/') || cat.icon.match(/\.(svg|png|jpg|jpeg)$/i)) {
+             iconHtml = `<img src="${cat.icon}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;">`;
+        } else {
+             iconHtml = cat.icon;
+        }
+
+        return `
+        <button class="category-card ${currentCategory === cat.id ? 'active' : ''}" onclick="filterByCategory(${cat.id})">
+            <span class="category-icon">${iconHtml}</span>
             <span class="category-name">${cat.name}</span>
         </button>
-    `).join('');
+        `;
+    }).join('');
     
     container.innerHTML = html;
     

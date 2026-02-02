@@ -78,6 +78,17 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">أيقونة القسم (SVG)</label>
+                        
+                        <!-- Static Icons Selection -->
+                        <div id="staticIconsContainer" style="margin-bottom: 16px;">
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 8px;">اختر من الأيقونات الثابتة:</p>
+                            <div id="availableIconsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; padding: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 120px; overflow-y: auto;">
+                                <div style="padding: 10px; text-align: center; font-size: 0.8rem; color: #888; grid-column: 1/-1;">جاري تحميل الأيقونات...</div>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 8px;">أو قم برفع أيقونة خاصة:</p>
+
                         <div class="file-upload-wrapper">
                             <input type="file" id="categoryIconInput" class="file-input" accept=".svg" hidden>
                             <label for="categoryIconInput" class="file-label">

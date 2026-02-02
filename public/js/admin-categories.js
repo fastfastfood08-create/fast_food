@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for background updates
     document.addEventListener('categories-updated', renderCategories);
+    
+    // Load Static Icons
+    loadStaticIcons();
 
     // Setup Category SVG Input
     const categoryIconInput = document.getElementById('categoryIconInput');
@@ -39,6 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const preview = document.getElementById('categoryIconPreview');
                     preview.innerHTML = `<img src="${base64Content}" style="width:100%; height:100%; object-fit:contain;">`;
                     preview.style.display = 'flex';
+                    
+                    // Deselect any static icon
+                    if (typeof highlightSelectedStaticIcon === 'function') {
+                        highlightSelectedStaticIcon(null);
+                    }
                 }
                 reader.readAsDataURL(file); // Read as Safe Base64 String
             }
@@ -70,7 +78,7 @@ function renderCategories() {
             <div class="category-card-body">
                 <div class="category-icon-wrapper ${!cat.active ? 'dimmed' : ''}">
                     <span class="category-icon">
-                        ${(cat.icon && (cat.icon.startsWith('data:') || cat.icon.startsWith('http'))) 
+                        ${(cat.icon && (cat.icon.startsWith('data:') || cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('/icons/') || cat.icon.match(/\.(svg|png|jpg|jpeg)$/i))) 
                             ? `<img src="${cat.icon}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;">` 
                             : cat.icon}
                     </span>
@@ -79,10 +87,10 @@ function renderCategories() {
             </div>
             
             <div class="category-card-actions">
-                <button class="cat-btn cat-btn-edit" onclick="editCategory(${cat.id})">
+                <button class="cat-btn cat-btn-edit" onclick="editCategory('${cat.id}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> تعديل
                 </button>
-                <button class="cat-btn cat-btn-delete" onclick="deleteCategory(${cat.id})">
+                <button class="cat-btn cat-btn-delete" onclick="deleteCategory('${cat.id}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> حذف
                 </button>
             </div>
@@ -110,19 +118,32 @@ function openCategoryModal(id = null) {
             document.getElementById('categoryName').value = cat.name;
             document.getElementById('categoryIcon').value = cat.icon;
             document.getElementById('categoryModalTitle').textContent = 'تعديل قسم';
-            
-            if (cat.icon) {
-                if (cat.icon.includes('<svg') || cat.icon.includes('svg')) {
+                      if (cat.icon) {
+                // If it looks like an image path or data URL
+                if (cat.icon.startsWith('data:') || cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('/icons/') || cat.icon.match(/\.(svg|png|jpg|jpeg)$/i)) {
+                    preview.innerHTML = `<img src="${cat.icon}" style="width:100%; height:100%; object-fit:contain;">`;
+                    preview.style.display = 'flex';
+                    
+                    // Highlight if it's a static icon
+                    highlightSelectedStaticIcon(cat.icon);
+                } else if (cat.icon.includes('<svg')) {
+                    // It's an inline SVG string
                     preview.innerHTML = cat.icon;
                     preview.style.display = 'flex';
+                    highlightSelectedStaticIcon(null);
                 } else {
+                    // It's likely text/emoji
                     preview.innerHTML = `<span style="font-size: 2rem;">${cat.icon}</span>`;
                     preview.style.display = 'flex';
+                    highlightSelectedStaticIcon(null);
                 }
+            } else {
+                highlightSelectedStaticIcon(null);
             }
         }
     } else {
         document.getElementById('categoryModalTitle').textContent = 'إضافة قسم جديد';
+        highlightSelectedStaticIcon(null);
     }
     
     document.getElementById('categoryModal').classList.add('active');
@@ -169,9 +190,10 @@ async function saveCategory(event) {
     try {
         const id = document.getElementById('categoryId').value;
         const name = document.getElementById('categoryName').value.trim();
-        const icon = document.getElementById('categoryIcon').value || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+        const icon = document.getElementById('categoryIcon').value;
         
         if (!name) throw new Error('يرجى إدخال اسم القسم');
+        if (!icon) throw new Error('يرجى اختيار صورة أو أيقونة للقسم');
 
         showActionLoader(id ? 'جاري تحديث القسم...' : 'جاري إضافة القسم...');
         
@@ -228,4 +250,91 @@ async function toggleCategoryActive(id) {
         renderCategories();
         showToast(`${updated.name} ${updated.active ? 'مفعّل الآن' : 'تم إيقافه'}`, updated.active ? 'success' : 'info');
     }
+}
+
+
+// ===================================
+// Static Icons Logic
+// ===================================
+async function loadStaticIcons() {
+    const list = document.getElementById('availableIconsList');
+    if (!list) return;
+
+    try {
+        const response = await fetch('/api/icons');
+        const data = await response.json();
+        
+        if (data && data.icons && data.icons.length > 0) {
+            list.innerHTML = data.icons.map(icon => `
+                <div class="static-icon-item" onclick="selectStaticIcon('${icon.path}', this)" title="${icon.name}">
+                    <img src="${icon.path}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+                </div>
+            `).join('');
+            
+            // Add Styles for selection
+            if (!document.getElementById('staticIconStyles')) {
+                const style = document.createElement('style');
+                style.id = 'staticIconStyles';
+                style.textContent = `
+                    .static-icon-item {
+                        width: 48px;
+                        height: 48px;
+                        padding: 8px;
+                        border: 2px solid transparent;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        background: #fff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .static-icon-item:hover {
+                        background: #f0f0f0;
+                        border-color: #ddd;
+                    }
+                    .static-icon-item.selected {
+                        border-color: #f59e0b; /* Primary Orange/Amber */
+                        background: #fffbeb;
+                        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        } else {
+            list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:10px; font-size:0.8rem;">لا توجد أيقونات ثابتة</div>';
+        }
+    } catch (e) {
+        console.error('Failed to load icons', e);
+        list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:10px; font-size:0.8rem; color:red;">فشل تحميل الأيقونات</div>';
+    }
+}
+
+function selectStaticIcon(path, element) {
+    // Update Hidden Input
+    document.getElementById('categoryIcon').value = path;
+    
+    // Update Preview
+    const preview = document.getElementById('categoryIconPreview');
+    preview.innerHTML = `<img src="${path}" style="width:100%; height:100%; object-fit:contain;">`;
+    preview.style.display = 'flex';
+    
+    // Clear file input if any
+    const fileInput = document.getElementById('categoryIconInput');
+    if (fileInput) fileInput.value = '';
+
+    // Highlight selection
+    highlightSelectedStaticIcon(path);
+}
+
+function highlightSelectedStaticIcon(path) {
+    const items = document.querySelectorAll('.static-icon-item');
+    items.forEach(item => {
+        item.classList.remove('selected');
+        // Check if img src matches path (or somewhat matches)
+        const img = item.querySelector('img');
+        if (path && img && img.getAttribute('src') === path) {
+            item.classList.add('selected');
+        }
+    });
 }

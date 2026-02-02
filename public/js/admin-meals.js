@@ -105,8 +105,85 @@ function initMealsPage() {
     const select = document.getElementById('mealsCategorySelect');
     
     if (select) {
+        // Populate Native Select (Hidden) so it can hold value
         select.innerHTML = '<option value="all">كل الأقسام</option>' + 
-            categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+        select.style.display = 'none';
+        
+        // ... Custom UI Construction ...
+        let customWrapper = document.getElementById('customCategorySelectWrapper');
+        if (!customWrapper) {
+            customWrapper = document.createElement('div');
+            customWrapper.id = 'customCategorySelectWrapper';
+            customWrapper.className = 'custom-select-wrapper';
+            select.parentNode.insertBefore(customWrapper, select.nextSibling);
+
+             // Remove old arrow if present
+            const oldArrow = select.parentNode.querySelector('.select-arrow');
+            if(oldArrow) oldArrow.style.display = 'none';
+        }
+
+        // Generate Options Data
+        const optionsData = [
+            { id: 'all', name: 'كل الأقسام', icon: null },
+            ...categories.map(c => ({ id: c.id, name: c.name, icon: c.icon }))
+        ];
+
+        // Build Custom Select HTML
+        let selectedId = 'all';
+         // Check if already selected
+        if (select.value && select.value !== 'all') selectedId = select.value;
+
+        const selectedOption = optionsData.find(o => String(o.id) === String(selectedId)) || optionsData[0];
+        
+        // Helper to render icon
+        const renderIconHtml = (icon) => {
+             if (!icon) return '';
+             let content = '';
+             if (icon.trim().startsWith('<svg')) {
+                 content = icon.replace('<svg ', '<svg style="width:100%; height:100%;" ');
+             } else if (icon.match(/\.(svg|png|jpg|jpeg)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.startsWith('/')) {
+                 content = `<img src="${icon}" alt="icon">`;
+             } else {
+                 content = `<span style="font-size:1.2em">${icon}</span>`;
+             }
+             return `<span class="option-icon">${content}</span>`;
+        };
+
+        const buildOptionsHtml = () => {
+             return optionsData.map(opt => `
+                <div class="custom-option ${String(opt.id) === String(selectedId) ? 'selected' : ''}" data-value="${opt.id}" onclick="selectCategoryCustom('${opt.id}')">
+                    ${renderIconHtml(opt.icon)}
+                    <span class="option-text">${opt.name}</span>
+                </div>
+             `).join('');
+        };
+
+        customWrapper.innerHTML = `
+            <div class="custom-select" id="customCategoryTrigger">
+                <div class="custom-select-trigger" onclick="toggleCustomSelect()">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${renderIconHtml(selectedOption.icon)}
+                        <span>${selectedOption.name}</span>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+                <div class="custom-options">
+                    ${buildOptionsHtml()}
+                </div>
+            </div>
+        `;
+        
+        // Close on click outside
+        window.onclick = function(event) {
+            if (!event.target.closest('.custom-select')) {
+                 const openSelect = document.querySelector('.custom-select.open');
+                 if (openSelect) {
+                      openSelect.classList.remove('open');
+                 }
+            }
+        }
     }
         
     renderMeals();
@@ -204,7 +281,80 @@ function openMealModal(mealId = null) {
     
     const categories = getCategories();
     const catSelect = document.getElementById('mealCategory');
+    
+    // Clear any previous custom select for modal
+    const oldCustomModal = document.getElementById('customMealCategorySelectWrapper');
+    if(oldCustomModal) oldCustomModal.remove();
+
+    // Populate Native Select (Hidden)
     catSelect.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    catSelect.style.display = 'none'; // Hide native select
+
+    // Build Custom Select Wrapper for Modal
+    const customWrapper = document.createElement('div');
+    customWrapper.id = 'customMealCategorySelectWrapper';
+    customWrapper.className = 'custom-select-wrapper';
+    customWrapper.style.width = '100%'; // Full width for modal
+    catSelect.parentNode.insertBefore(customWrapper, catSelect.nextSibling);
+
+    // Prepare Options
+    const optionsData = categories.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
+    
+    // Helper Render Icon
+    const renderIconHtml = (icon) => {
+             if (!icon) return '';
+             let content = '';
+             if (icon.trim().startsWith('<svg')) {
+                 content = icon.replace('<svg ', '<svg style="width:100%; height:100%;" ');
+             } else if (icon.match(/\.(svg|png|jpg|jpeg)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.startsWith('/')) {
+                 content = `<img src="${icon}" alt="icon">`;
+             } else {
+                 content = `<span style="font-size:1.2em">${icon}</span>`;
+             }
+             return `<span class="option-icon">${content}</span>`;
+    };
+
+    // Determine initial selected (if edit mode, otherwise first)
+    // We'll set this 'visual' state later if mealId exists, but default is first one.
+    let currentSelectedId = categories.length > 0 ? categories[0].id : '';
+    
+    // Build HTML Function
+    window.buildModalCustomSelect = (selectedId) => {
+         const selectedOption = optionsData.find(o => String(o.id) === String(selectedId)) || optionsData[0];
+         if (!selectedOption) return; // No categories
+
+         const buildOptionsHtml = () => {
+             return optionsData.map(opt => `
+                <div class="custom-option ${String(opt.id) === String(selectedId) ? 'selected' : ''}" data-value="${opt.id}" onclick="selectModalCategory('${opt.id}')">
+                    ${renderIconHtml(opt.icon)}
+                    <span class="option-text">${opt.name}</span>
+                </div>
+             `).join('');
+        };
+
+        customWrapper.innerHTML = `
+            <div class="custom-select" id="customMealCategoryTrigger">
+                <div class="custom-select-trigger" onclick="toggleModalCustomSelect()">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${renderIconHtml(selectedOption.icon)}
+                        <span>${selectedOption.name}</span>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+                <div class="custom-options">
+                    ${buildOptionsHtml()}
+                </div>
+            </div>
+        `;
+    };
+    
+    // Initial Build
+    buildModalCustomSelect(currentSelectedId);
+    
+    // Add Click Outside Listener specific for modal (optional, or use global one if class matches)
+    // Global listener on window from previous step targets .custom-select, so it should work if we reused class.
+    // We reused class 'custom-select', so generic listener works.
+
     
     if (mealId) {
         const meal = getMeals().find(m => m.id === mealId);
@@ -416,3 +566,71 @@ async function deleteMealFunc(id) {
         showToast('تم حذف الوجبة', 'warning');
     }
 }
+
+// Custom Select Logic
+window.toggleCustomSelect = function() {
+    const trigger = document.getElementById('customCategoryTrigger');
+    if (trigger) {
+        trigger.classList.toggle('open');
+    }
+};
+
+window.selectCategoryCustom = function(catId) {
+    const parent = document.getElementById('mealsCategorySelect');
+    if (parent) {
+        parent.value = catId;
+        
+        // Update Visual Trigger UI to reflect selection
+        const selectedOption = document.querySelector(`.custom-option[data-value="${catId}"]`);
+        if (selectedOption) {
+            // Get content from the clicked option
+            const iconEl = selectedOption.querySelector('.option-icon');
+            const iconHtml = iconEl ? iconEl.innerHTML : '';
+            const text = selectedOption.querySelector('.option-text').innerText;
+            
+            // Update the trigger content (Icon + Text)
+            // The trigger DOM structure is: .custom-select-trigger > div (flex) > icon + span
+            const triggerContent = document.querySelector('#customCategoryTrigger .custom-select-trigger > div');
+            if (triggerContent) {
+                 // Only add icon span if there is an icon
+                 const iconSpan = iconHtml ? `<span class="option-icon">${iconHtml}</span>` : '';
+                 triggerContent.innerHTML = `${iconSpan}<span>${text}</span>`;
+            }
+            
+            // Render Selection State in List
+            document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+            selectedOption.classList.add('selected');
+        }
+
+        // Trigger generic filter function
+        if (typeof filterMeals === 'function') {
+            filterMeals(catId);
+        }
+        
+        // Close Dropdown
+        const triggerWrapper = document.getElementById('customCategoryTrigger');
+        if (triggerWrapper) {
+            triggerWrapper.classList.remove('open');
+        }
+    }
+};
+
+// Custom Select Logic for Modal (Add/Edit Meal)
+window.toggleModalCustomSelect = function() {
+    const trigger = document.getElementById('customMealCategoryTrigger');
+    if (trigger) {
+        trigger.classList.toggle('open');
+    }
+};
+
+window.selectModalCategory = function(catId) {
+    const nativeSelect = document.getElementById('mealCategory');
+    if (nativeSelect) {
+        nativeSelect.value = catId;
+        
+        // Re-render Custom UI to show new selected
+        if (typeof window.buildModalCustomSelect === 'function') {
+            window.buildModalCustomSelect(catId);
+        }
+    }
+};

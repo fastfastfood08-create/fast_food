@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS settings CASCADE;
 -- ============================================
 CREATE TABLE categories (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
     icon TEXT DEFAULT '📁',
     "order" INTEGER DEFAULT 0,
     active BOOLEAN DEFAULT true,
@@ -157,14 +157,6 @@ VALUES (1, 'مطعمي', '0555123456', 'الجزائر العاصمة', 'دج', 
 ON CONFLICT (id) DO NOTHING;
 
 -- الأقسام الافتراضية
-INSERT INTO categories (name, icon, "order", active) VALUES
-('بيتزا', '🍕', 1, true),
-('برغر', '🍔', 2, true),
-('شاورما', '🌯', 3, true),
-('طاكوس', '🌮', 4, true),
-('سلطات', '🥗', 5, true),
-('مشروبات', '🥤', 6, true),
-('حلويات', '🍰', 7, true);
 
 -- وجبات افتراضية
 INSERT INTO meals (category_id, name, description, price, active, popular, "order", has_sizes) VALUES

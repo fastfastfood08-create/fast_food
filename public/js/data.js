@@ -275,29 +275,18 @@ async function deleteCategoryData(id) {
     const targetId = String(id); // Normalize to string for comparison
     
     // Optimistic Update: Remove from local state immediately
-    // 1. Remove associated meals locally
+    // 1. Identify meals to delete FIRST
+    const mealsToDelete = appState.meals.filter(m => String(m.categoryId) === targetId);
+
+    // 2. Optimistic Update: Remove from local state
     appState.meals = appState.meals.filter(m => String(m.categoryId) !== targetId);
-    
-    // 2. Remove category locally
     appState.categories = appState.categories.filter(c => String(c.id) !== targetId);
     
     // 3. Update Backend
     try {
-        // Force Delete Meals First (Manual Cascade)
-        // This ensures meals are deleted even if DB 'ON DELETE CASCADE' is missing.
-        const deleteMealPromises = appState.meals
-            .filter(m => String(m.categoryId) === targetId)
-            .map(meal => 
-                ApiClient.request(`/meals?id=${meal.id}`, { method: 'DELETE' })
-                    .catch(err => console.warn('Failed to delete meal ' + meal.id, err))
-            );
-            
-        if (deleteMealPromises.length > 0) {
-            console.log(`Deleting ${deleteMealPromises.length} meals for category ${id}...`);
-            await Promise.all(deleteMealPromises);
-        }
-
-        // Now delete the category
+        // Database has ON DELETE CASCADE constraint, so just deleting the category is enough.
+        // The backend DB will automatically remove all associated meals.
+        
         await ApiClient.request(`/categories?id=${id}`, { method: 'DELETE' });
         showToast('تم حذف القسم وجميع وجباته', 'success');
     } catch(e) {
