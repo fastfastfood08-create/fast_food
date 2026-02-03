@@ -123,7 +123,7 @@ function openCategoryModal(id = null) {
     if (iconInput) iconInput.value = '';
     
     if (id) {
-        const cat = getCategories().find(c => c.id === id);
+        const cat = getCategories().find(c => c.id == id);
         if (cat) {
             document.getElementById('categoryId').value = cat.id;
             document.getElementById('categoryName').value = cat.name;
