@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for background updates
     document.addEventListener('categories-updated', renderCategories);
     
-    // Load Static Icons - MOVED TO MODAL OPEN
-    // loadStaticIcons();
+    // Load Static Icons (Preload for instant open)
+    loadStaticIcons();
 
     // Setup Category SVG Input
     const categoryIconInput = document.getElementById('categoryIconInput');
@@ -157,8 +157,8 @@ function openCategoryModal(id = null) {
         highlightSelectedStaticIcon(null);
     }
     
-    // Lazy Load Icons
-    loadStaticIcons();
+    // Lazy Load Icons - Handled in Init now
+    // loadStaticIcons();
     
     document.getElementById('categoryModal').classList.add('active');
 }
