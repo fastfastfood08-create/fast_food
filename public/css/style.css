@@ -4,7 +4,7 @@
 ======================================== */
 
 /* Font Loading */
-@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 
 /* Font loaded via HTML for performance */
 
@@ -64,8 +64,8 @@
   --gradient-sunset: linear-gradient(135deg, #ffd54f 0%, #ffb800 30%, #ff6b00 70%, #e55d00 100%);
   
   /* Typography */
-  --font-body: 'Almarai', sans-serif;
-  --font-display: 'Cairo', sans-serif;
+  --font-body: 'Tajawal', sans-serif;
+  --font-display: 'Tajawal', sans-serif;
   
   /* Spacing */
   --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
@@ -614,13 +614,13 @@ button, input { font-family: inherit; }
   color: white;
 }
 .category-icon { 
-  font-size: 3rem; /* Medium Size */
+  font-size: 3.5rem; /* Slightly Larger Size */
   transition: all var(--duration-normal) var(--ease-bounce); 
   filter: drop-shadow(0 3px 8px rgba(0,0,0,0.08)); 
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px; height: 56px; /* Medium Container */
+  width: 70px; height: 70px; /* Slightly Larger Container */
 }
 .category-icon svg,
 .category-icon img {
@@ -628,6 +628,15 @@ button, input { font-family: inherit; }
   height: 100% !important;
   object-fit: contain;
   display: block;
+}
+
+/* تكبير الأيقونات داخل فلتر الفئات فقط */
+.category-card .category-icon .icon-inner {
+  width: 80% !important;
+  height: 80% !important;
+}
+.category-card .category-icon .emoji-icon {
+  font-size: 3rem !important;
 }
 
 .category-name { 

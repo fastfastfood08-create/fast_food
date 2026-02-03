@@ -417,7 +417,7 @@ function getCategoryIconHtml(category, style = '') {
     // A. Inline SVG
     if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
         return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
-                    <div style="width:65%; height:65%; display:flex; align-items:center; justify-content:center;">${icon}</div>
+                    <div class="icon-inner" style="width:50%; height:50%; display:flex; align-items:center; justify-content:center;">${icon}</div>
                 </div>`;
     }
     
@@ -428,7 +428,7 @@ function getCategoryIconHtml(category, style = '') {
             src = '/' + src;
         }
         return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
-                    <div style="width:65%; height:65%; display:flex; align-items:center; justify-content:center;">
+                    <div class="icon-inner" style="width:50%; height:50%; display:flex; align-items:center; justify-content:center;">
                         <img src="${src}" alt="${category.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">
                     </div>
                 </div>`;
@@ -436,7 +436,7 @@ function getCategoryIconHtml(category, style = '') {
     
     // C. Emoji/Text
     return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
-                <div style="font-size: 2.5rem; line-height: 1; color: var(--text-muted);">${icon}</div>
+                <div class="icon-inner emoji-icon" style="font-size: 2.5rem; line-height: 1;">${icon}</div>
             </div>`;
 }
 window.getCategoryIconHtml = getCategoryIconHtml; // Export
