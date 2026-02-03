@@ -2140,3 +2140,111 @@ button, input { font-family: inherit; }
 }
 
 
+
+/* ═══════════════════════════════════════════
+   PREMIUM LOADING OVERLAY
+═══════════════════════════════════════════ */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-primary);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+.loading-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.spinner-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-ring-blur {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    filter: blur(8px);
+    opacity: 0.5;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-logo {
+    animation: pulse 2s ease-in-out infinite;
+    z-index: 2;
+}
+
+.loading-text {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+
+    50% { transform: scale(0.95); opacity: 0.8; }
+}
+
+
+/* ═══════════════════════════════════════════
+   USER REQUESTS: ORDER CARD VISIBILITY
+═══════════════════════════════════════════ */
+
+/* Increase visibility of the internal order card section */
+.order-card-body {
+    background-color: var(--secondary-glow); /* Previously transparent or too light */
+    /* Add a distinct but soft background color to separate it from the white card */
+    background: #fdf6ec; /* Very light orange/cream tint */
+    border: 1px solid rgba(255, 107, 0, 0.08); /* Subtle orange border */
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-3) 0;
+}
+
+/* Ensure text inside is sharp and dark */
+.order-card-body p {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+/* Fix mobile specific visibility issues if any (overrides) */
+@media (max-width: 768px) {
+    .order-card-body {
+        background: #fff8f0; /* Slightly stronger tint on mobile for contrast */
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+}
+

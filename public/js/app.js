@@ -37,16 +37,66 @@ async function initializeApp() {
     
     // إعداد تفاعل الرأس مع التمرير
     setupHeaderScroll();
+
+    // === NEW: Wait for critical images to load ===
+    try {
+        await waitForCriticalImages();
+    } catch (e) {
+        console.warn('Image preloading timeout or error:', e);
+    }
     
     // إخفاء التحميل تدريجياً
     const loader = document.getElementById('loadingOverlay');
     if (loader) {
-        // Minimum wait to ensure animation is seen (optional aesthetic choice)
-        setTimeout(() => {
-            loader.classList.add('fade-out');
-            setTimeout(() => loader.remove(), 500); // Wait for transition
-        }, 800); 
+        loader.classList.add('fade-out');
+        setTimeout(() => loader.remove(), 500); // Wait for transition
     }
+}
+
+// دالة مساعدة لانتظار تحميل الصور المهمة
+function waitForCriticalImages() {
+    return new Promise((resolve) => {
+        // نجمع كل الصور في الفئات وأول 8 صور في الوجبات
+        const categoryImages = Array.from(document.querySelectorAll('#categoriesContainer img'));
+        const mealImages = Array.from(document.querySelectorAll('#mealsContainer .meal-card:nth-child(-n+8) img'));
+        
+        const allImages = [...categoryImages, ...mealImages];
+        
+        if (allImages.length === 0) {
+            resolve();
+            return;
+        }
+
+        let loadedCount = 0;
+        const total = allImages.length;
+        let resolved = false;
+
+        const checkDone = () => {
+            loadedCount++;
+            if (loadedCount >= total && !resolved) {
+                resolved = true;
+                resolve();
+            }
+        };
+
+        // Safety timeout (max 3 seconds waiting for images)
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                console.log('Image loading timed out, proceeding anyway...');
+                resolved = true;
+                resolve();
+            }
+        }, 3000);
+
+        allImages.forEach(img => {
+            if (img.complete) {
+                checkDone();
+            } else {
+                img.onload = checkDone;
+                img.onerror = checkDone;
+            }
+        });
+    });
 }
 
 // عرض واجهة التحميل (Skeleton)

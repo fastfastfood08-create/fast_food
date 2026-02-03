@@ -218,13 +218,29 @@
         let selectedRating = 0;
         let currentPhone = '';
         
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load app data including settings
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load app data including settings AND ORDERS
             if (typeof initializeApp === 'function') {
-                initializeApp();
+                // Force fetch orders to ensure freshness
+                // We pass { orders: true, force: true } if supported, or just call refreshOrders
+                await initializeApp(); 
             } else if (typeof loadRestaurantSettings === 'function') {
                 loadRestaurantSettings();
             }
+
+            // EXPLICIT REFRESH: Fix for "New orders not appearing"
+            // We force a fetch from the server to get the latest list
+            if (typeof refreshOrders === 'function') {
+                await refreshOrders();
+            }
+
+            // Also listen for updates to re-render if open
+            document.addEventListener('orders-updated', () => {
+               if (currentPhone) {
+                   const orders = getCustomerOrders(currentPhone);
+                   renderOrders(orders);
+               }
+            });
             
             updateCartUI();
             
@@ -232,6 +248,11 @@
             const savedPhone = localStorage.getItem('customerPhone');
             if (savedPhone) {
                 document.getElementById('searchPhone').value = savedPhone;
+                // Auto-search if valid
+                if (savedPhone.length >= 10) {
+                     // small delay to let data load
+                     setTimeout(() => document.querySelector('form').dispatchEvent(new Event('submit')), 500);
+                }
             }
         });
         

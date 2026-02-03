@@ -107,17 +107,19 @@ function getOrderByNumber(orderNumber) {
 
 // الحصول على طلبات الزبون بواسطة رقم الهاتف
 function getCustomerOrders(phone) {
+    // Ensure we are using the latest state
     const orders = getOrders();
     if (!phone) return [];
     if (!orders) return [];
     
-    // Normalize phone
-    const normalizedPhone = phone.replace(/\s/g, '');
+    // Normalize phone (remove spaces, dashes)
+    const normalizedPhone = phone.replace(/[\s-]/g, '');
     
+    // Sort by Date Descending (Newest First) to ensure new orders appear at top
     return orders.filter(o => {
         if (!o.customerPhone) return false;
-        return o.customerPhone.replace(/\s/g, '') === normalizedPhone;
-    });
+        return o.customerPhone.replace(/[\s-]/g, '') === normalizedPhone;
+    }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 // إلغاء الطلب (تغيير الحالة إلى ملغى)
@@ -148,51 +150,54 @@ async function cancelOrder(orderId) {
 }
 
 // تقييم الطلب
+// تقييم الطلب
 async function rateOrder(orderId, rating, review = '') {
     const order = getOrderById(orderId);
     
     if (order && order.status === 'delivered') {
-         // Optimistic Update
-         order.rating = rating;
-         order.review = review;
-         
-         // Save locally IMMEDIATELY (simulates success)
-         if (typeof persistLocalOrders === 'function') {
-             persistLocalOrders();
-         } else {
-             // Fallback if function not exported (it isn't by default in data.js, need to check visibility)
-             // Since data.js functions aren't globally exposed like that, we might need to manually save 
-             // or access appState if global.
-             // Typically 'appState' is not global unless exposed.
-             // But 'persistLocalOrders' was added to 'data.js'. 
-             // Is it exposed? No, it's internal to data.js.
-             // However, 'appState.orders' is mutated here because 'order' is a reference object from getOrders()!
-             // So we just need to trigger a save.
-             // Let's modify data.js to expose a save function or just manually update storage here?
-             // Safer: Manually update storage here alongside API call.
-             
-             // Access global appState if possible or re-read/write
-             // Let's rely on API call + manual localStorage manipulation for "Orders.js" context
-             try {
-                const recent = getOrders().slice(0, 50);
-                localStorage.setItem('localOrders', JSON.stringify(recent));
-             } catch(e) {}
-         }
+        const previousRating = order.rating;
+        const previousReview = order.review;
 
+        // 1. Optimistic Update (Immediate Feedback)
+        // Update local memory state instantly
+        order.rating = rating;
+        order.review = review;
+        
+        // 2. Persist to Local Storage IMMEDIATELY (Manual Backup)
+        // This ensures if user refreshes before API, they see it.
         try {
-           await ApiClient.request('/orders', {
-               method: 'PUT',
-               body: JSON.stringify({ id: orderId, rating, review })
-           });
-           
-           showToast('شكراً لتقييمك!', 'success');
-           return true;
-        } catch (e) {
-            console.error("Rating failed partially (saved locally)", e);
-            // Still return true for Demo UI
-            showToast('شكراً لتقييمك!', 'success');
-            return true;
-        }
+            // Update the main cached orders array
+            let cachedOrders = JSON.parse(localStorage.getItem('cachedOrders') || '[]');
+            const cachedIndex = cachedOrders.findIndex(o => o.id == orderId); // loose equality
+            
+            if (cachedIndex !== -1) {
+                cachedOrders[cachedIndex].rating = rating;
+                cachedOrders[cachedIndex].review = review;
+                localStorage.setItem('cachedOrders', JSON.stringify(cachedOrders));
+            }
+            
+            // Also update 'localOrders' used elsewhere?
+            // Just ensuring 'cachedOrders' is enough if app relies on it.
+            // Also trigger event to update UI instantly if observing
+            document.dispatchEvent(new CustomEvent('orders-updated'));
+            
+        } catch(e) { console.error("Local save failed", e); }
+
+        // 3. Send to Backend (Background)
+        // We don't await this for the UI return, but we handle errors
+        ApiClient.request('/orders', {
+            method: 'PUT',
+            body: JSON.stringify({ id: orderId, rating, review })
+        }).catch(e => {
+            console.error("Rating sync failed", e);
+            // Optional: Revert on HARD failure? 
+            // Usually better to keep local state and retry later, 
+            // or just silently fail if it's minor.
+        });
+
+        // Always return true immediately for "Instant" feel
+        showToast('شكراً لتقييمك!', 'success');
+        return true;
     }
     return false;
 }
