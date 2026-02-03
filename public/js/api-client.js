@@ -62,8 +62,10 @@ const ApiClient = {
     },
     
     // Orders
-    async getOrders() {
-        return this.request('/orders');
+    async getOrders(page = 1, limit = 50, search = '') {
+        let url = `/orders?page=${page}&limit=${limit}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        return this.request(url);
     },
     
     async createOrder(order) {

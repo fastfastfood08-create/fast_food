@@ -50,6 +50,7 @@ model Meal {
   @@index([categoryId])
   @@index([active, order])
   @@index([popular])
+  @@index([name])
 }
 
 // ============================================
@@ -92,6 +93,7 @@ model Order {
   @@index([status])
   @@index([createdAt])
   @@index([customerPhone])
+  @@index([customerName])
 }
 
 // ============================================

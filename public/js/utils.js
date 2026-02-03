@@ -404,81 +404,104 @@ function fallbackCopyToClipboard(text) {
     }
 }
 
-// توليد HTML لصورة الوجبة أو العنصر البديل (شعار القسم أو الشعار الافتراضي)
+/**
+ * توليد HTML لأيقونة الفئة (القسم)
+ * @param {Object} category - كائن الفئة
+ * @param {string} style - ستايل إضافي للحاوية
+ */
+function getCategoryIconHtml(category, style = '') {
+    if (!category || !category.icon) return '';
+    
+    const icon = category.icon.trim();
+    
+    // A. Inline SVG
+    if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
+        return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
+                    <div style="width:65%; height:65%; display:flex; align-items:center; justify-content:center;">${icon}</div>
+                </div>`;
+    }
+    
+    // B. Image Path (Extensions, HTTP, Data URI, Slash)
+    if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/')) {
+        let src = icon;
+        if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
+            src = '/' + src;
+        }
+        return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
+                    <div style="width:65%; height:65%; display:flex; align-items:center; justify-content:center;">
+                        <img src="${src}" alt="${category.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">
+                    </div>
+                </div>`;
+    } 
+    
+    // C. Emoji/Text
+    return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
+                <div style="font-size: 2.5rem; line-height: 1; color: var(--text-muted);">${icon}</div>
+            </div>`;
+}
+window.getCategoryIconHtml = getCategoryIconHtml; // Export
+
 /**
  * @param {Object} meal - كائن الوجبة
  * @param {string} style - ستايل اختياري للحاوية
  * @param {string} imgStyle - ستايل الصورة
- * @param {number} iconScale - نسبة حجم الأيقونة (0-1)
  */
-function getMealImageOrPlaceholder(meal, style = '', imgStyle = '', iconScale = 0.6) {
+function getMealImageOrPlaceholder(meal, style = '', imgStyle = '') {
     const finalContainerStyle = style || 'width: 100%; height: 100%;';
-    
-    // Base size for icons (pixels)
-    const baseSize = 30; 
-    const calculatedSize = baseSize * iconScale;
-
-    // Internal Helper to get Icon Content (SVG or Emoji)
-    const getIconContent = (m) => {
-        let catId = m.categoryId || m.category_id;
-        
-        // Lookup if missing
-        if (!catId && typeof getMeals === 'function') {
-            const lookupId = m.mealId || m.id;
-            const globalMeal = getMeals().find(gm => gm.id == lookupId);
-            if (globalMeal) catId = globalMeal.categoryId;
-        }
-
-        if (!catId || typeof getCategories !== 'function') return null;
-        
-        const categories = getCategories();
-        const category = categories.find(c => String(c.id) === String(catId));
-        
-        if (category && category.icon) {
-            const iconStr = category.icon.trim();
-            // Check if it's an SVG
-            if (iconStr.startsWith('<svg')) {
-                 // Force 1em size to match font-size of container
-                 return iconStr.replace(/width="\d+"/, '').replace(/height="\d+"/, '')
-                               .replace('<svg ', '<svg preserveAspectRatio="xMidYMid meet" style="width: 1em; height: 1em; overflow: visible;" ');
-            }
-            // For Emojis/Text, just return as is (will inherit font-size)
-            return iconStr;
-        }
-        return null;
-    };
-
-    const fallbackContent = getIconContent(meal);
     
     // 1. Check for real meal image
     if (meal && meal.image && typeof meal.image === 'string' && meal.image.trim().length > 10) { 
-        // Fallback HTML (hidden by default)
-        const fallbackHtml = fallbackContent 
-            ? `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: ${calculatedSize}px;">
-                 ${fallbackContent}
-               </div>`
-            : `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1em; height: 1em; font-size: ${calculatedSize}px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+        // Fallback HTML if main image fails (use category icon)
+        let fallbackHtml = '';
+        
+        let catId = meal.categoryId || meal.category_id;
+        // Lookup if missing
+        if (!catId && typeof getMeals === 'function') {
+           const lookupId = meal.mealId || meal.id;
+           const globalMeal = getMeals().find(gm => gm.id == lookupId);
+           if (globalMeal) catId = globalMeal.categoryId;
+        }
+
+        if (catId && typeof getCategories === 'function') {
+           const categories = getCategories();
+           const category = categories.find(c => String(c.id) === String(catId));
+           if (category) fallbackHtml = getCategoryIconHtml(category);
+        }
+        
+        // Final fallback if no category
+        if (!fallbackHtml) {
+             fallbackHtml = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                             </div>`;
+        }
 
         return `
             <div class="meal-image-container" style="${finalContainerStyle}; position: relative; overflow: hidden; background: #F9FAFB;">
                  <img src="${meal.image}" alt="${meal.name || ''}" class="meal-image-img" 
                       style="width: 100%; height: 100%; object-fit: cover; ${imgStyle}" loading="lazy" 
-                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                 <div class="meal-placeholder-fallback" style="display:none; position:absolute; top:0; left:0; width: 100%; height: 100%; align-items: center; justify-content: center;">
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                 <div class="meal-placeholder-fallback" style="display:none; position:absolute; top:0; left:0; width: 100%; height: 100%;">
                     ${fallbackHtml}
                  </div>
             </div>`;
     }
 
-    // 2. Fallback Generation
-    if (fallbackContent) {
-         return `
-            <div class="meal-placeholder-auto" style="${finalContainerStyle}; background: #F9FAFB; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: ${calculatedSize}px; line-height: 1;">
-                    ${fallbackContent}
-                </div>
-            </div>
-        `;
+    // 2. Fallback Generation (No Image provided)
+    let catId = meal.categoryId || meal.category_id;
+    if (!catId && typeof getMeals === 'function') {
+        const lookupId = meal.mealId || meal.id;
+        const globalMeal = getMeals().find(gm => gm.id == lookupId);
+        if (globalMeal) catId = globalMeal.categoryId;
+    }
+
+    if (catId && typeof getCategories === 'function') {
+        const categories = getCategories();
+        const category = categories.find(c => String(c.id) === String(catId));
+        if (category) {
+            return `<div class="meal-placeholder-auto" style="${finalContainerStyle}; background: #F9FAFB; overflow: hidden;">
+                        ${getCategoryIconHtml(category)}
+                    </div>`;
+        }
     }
 
     // 3. Ultimate Fallback

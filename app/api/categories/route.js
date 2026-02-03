@@ -96,23 +96,39 @@ export async function DELETE(request) {
         const numericId = parseInt(id);
         if (isNaN(numericId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
-        // 1. Fetch associated meals to clean up their images
+        // 1. Fetch category to get its icon AND associated meals to clean up their images
+        const category = await prisma.category.findUnique({
+            where: { id: numericId },
+            select: { icon: true }
+        });
+
         const meals = await prisma.meal.findMany({
             where: { categoryId: numericId },
             select: { id: true, image: true }
         });
 
-        // 2. Delete physical image files
+        const fs = require('fs/promises');
+        const path = require('path');
+
+        // 2. Delete Category Icon if it's a local file
+        if (category && category.icon && category.icon.startsWith('/uploads/')) {
+            try {
+                const iconPath = path.join(process.cwd(), 'public', category.icon);
+                await fs.unlink(iconPath);
+                console.log(`Deleted category icon: ${iconPath}`);
+            } catch (e) {
+                if (e.code !== 'ENOENT') console.warn(`Error deleting category icon ${category.icon}:`, e);
+            }
+        }
+
+        // 3. Delete Meal Images
         if (meals.length > 0) {
-            const fs = require('fs/promises');
-            const path = require('path');
-            
             await Promise.all(meals.map(async (meal) => {
                 if (meal.image && meal.image.startsWith('/uploads/')) {
                     try {
                         const filePath = path.join(process.cwd(), 'public', meal.image);
                         await fs.unlink(filePath);
-                        console.log(`Deleted file: ${filePath}`);
+                        console.log(`Deleted meal image: ${filePath}`);
                     } catch (e) {
                          // Ignore file not found, log others
                          if (e.code !== 'ENOENT') console.error(`Error deleting file for meal ${meal.id}:`, e);
@@ -121,7 +137,7 @@ export async function DELETE(request) {
             }));
         }
 
-        // 3. Perform Database Deletion (Transaction)
+        // 4. Perform Database Deletion (Transaction)
         await prisma.$transaction(async (tx) => {
             // Explicitly delete meals first to ensure they are gone (fixes "meals still exist" issue)
             await tx.meal.deleteMany({

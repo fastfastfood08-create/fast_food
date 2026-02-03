@@ -3,7 +3,10 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ⚡ Instant Render
+    // ⚡ Render Loading State Immediately
+    renderMealsLoadingState();
+
+    // ⚡ Instant Render if data exists
     if (getCategories().length > 0 && getMeals().length > 0) {
         initMealsPage();
     }
@@ -12,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeData({ meals: true, categories: true }).then(() => {
         initMealsPage();
     });
+    // ...
 
     // Listen for background updates
     document.addEventListener('meals-updated', () => renderMeals());
@@ -97,8 +101,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsDataURL(file);
             }
         });
+
     }
 });
+
+// ===================================
+// Helper: Loading State
+// ===================================
+function renderMealsLoadingState() {
+    const container = document.getElementById('mealsGrid');
+    if (container) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 0; color: var(--text-secondary);">
+                <div class="action-loader-spinner" style="width: 40px; height: 40px; border-width: 3px; margin-bottom: 20px; position: relative;"></div>
+                <h3 style="font-size: 1.1rem; font-weight: 500;">جاري تحميل الوجبات...</h3>
+            </div>
+        `;
+    }
+    
+    // Optional: Filter Loading State
+    const select = document.getElementById('mealsCategorySelect');
+    if (select && select.options.length === 0) {
+         // Create a temporary placeholder if custom select isn't built yet
+         const wrapper = document.querySelector('.filter-wrapper');
+         if (wrapper && !document.getElementById('customCategorySelectWrapper')) {
+             // We can trigger a skeleton here if needed, but the spinner in grid is usually enough indication.
+             // Just ensuring the select isn't completely invisible/broken-looking.
+             select.innerHTML = '<option>جاري التحميل...</option>';
+         }
+    }
+}
 
 // ===================================
 // Helper: Action Loader (Copied from Admin Categories)
@@ -236,7 +268,50 @@ function renderMeals(categoryId = 'all') {
     
     updateMealsStats(meals);
     
-    container.innerHTML = meals.map(meal => {
+    // --- EMPTY STATE CHECK ---
+    if (meals.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state-container" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; background: var(--bg-surface); border-radius: 16px; border: 2px dashed rgba(0,0,0,0.05); margin-top: 20px;">
+                <div style="font-size: 4rem; margin-bottom: 24px; opacity: 0.8; filter: grayscale(0.2);">🍽️</div>
+                <h3 style="font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">لا توجد وجبات هنا</h3>
+                <p style="color: var(--text-secondary); font-size: 1rem; max-width: 400px; margin: 0 auto 32px; line-height: 1.6;">
+                    ${categoryId !== 'all' ? 'لم يتم العثور على أي وجبات في هذا القسم.' : 'لم تقم بإضافة أي وجبات بعد.'}
+                    <br>يمكنك إضافة وجبة جديدة لملء هذه القائمة.
+                </p>
+                <div style="display: flex; gap: 12px;">
+                    ${categoryId !== 'all' ? `<button onclick="document.querySelector('.custom-option[data-value=\\'all\\']').click()" class="btn btn-secondary">عرض كل الأقسام</button>` : ''}
+                    <button onclick="openMealModal()" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        إضافة وجبة
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Lazy Render Limit
+    const RENDER_LIMIT = 20;
+    // We store the current limit in a property on the container or global var?
+    // Global var specific to this module scope is fine since it's an IIFE-like module or just script.
+    // But better to attach to window or state if needed.
+    // Let's use a static var logic or reset it.
+    
+    // If resetting (default), start over. How to know if resetting? 
+    // Maybe we just check if we have a "load more" flag.
+    // For now, let's keep it simple: Render ALL is currently the bottleneck.
+    // We'll render first 30, then button.
+    
+    if (!window.adminMealsRenderLimit) window.adminMealsRenderLimit = 30;
+    
+    // Reset limit if filter changes? `renderMeals` is called by filter. 
+    // But `renderMeals` takes argument.
+    // We need to know if this is a "Load More" call or a "Filter Change" call.
+    // We can add a params: `renderMeals(categoryId, isLoadMore)`
+    
+    const visibleMeals = meals.slice(0, window.adminMealsRenderLimit);
+    
+    container.innerHTML = visibleMeals.map(meal => {
         const cat = categories.find(c => c.id === meal.categoryId);
         
         let priceDisplay = '';
@@ -253,39 +328,16 @@ function renderMeals(categoryId = 'all') {
             <div class="meal-card-admin ${!meal.active ? 'meal-inactive' : ''}" onclick="openMealModal(${meal.id})">
                 <div class="meal-card-image">
                     ${(() => {
-                        // Smart Image Logic
-                        // 1. Try Meal Image
-                        if (meal.image) {
-                            return `<img src="${meal.image}" alt="${meal.name}" style="object-fit: contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
-                        }
-                        
-                        // 2. Try Category Icon Fallback
-                        if (cat && cat.icon) {
-                            const icon = cat.icon.trim();
-                            
-                            // A. Check for Inline SVG (Starts with <svg) - Render directly as HTML
-                            if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
-                                return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:20px;">${icon}</div>`;
-                            }
-                            
-                            // B. Check if it's an image path/url (Data URI, HTTP, Extension, or Path with slashes)
-                            if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/')) {
-                                let src = icon;
-                                // Fix relative paths for admin panel usage if they don't start with / or http
-                                if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
-                                    src = '/' + src;
-                                }
-                                return `<img src="${src}" alt="${cat.name}" style="object-fit: contain; padding: 20px;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
-                            } 
-                            
-                            // C. Text/Emoji Fallback
-                            else {
-                                return `<div style="font-size: 3rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${icon}</div>`;
-                            }
-                        }
-                        
-                        // 3. Default Placeholder if no category logic worked
-                         return `<img src="/icons/default-meal.svg" alt="${meal.name}" style="object-fit: contain;" onerror="this.style.display='none'">`;
+                        let imageHtml = '';
+                    if (window.getMealImageOrPlaceholder) {
+                        imageHtml = window.getMealImageOrPlaceholder(meal, '', '', 0.6);
+                    } else {
+                        // Safe Fallback if utils not loaded
+                        imageHtml = meal.image 
+                            ? `<img src="${meal.image}" alt="${meal.name}" onerror="this.style.display='none'">` 
+                            : `<div class="no-image">No Image</div>`;
+                    }
+                    return imageHtml;
                     })()}
                 </div>
                 <div class="meal-card-content">
@@ -309,7 +361,25 @@ function renderMeals(categoryId = 'all') {
             </div>
         `;
     }).join('');
+    
+    // Show More Button
+    if (meals.length > window.adminMealsRenderLimit) {
+        container.innerHTML += `
+            <div style="grid-column: 1 / -1; text-align: center; margin-top: 20px;">
+                <button onclick="loadMoreAdminMeals()" class="btn-primary" style="padding: 10px 30px;">
+                    عرض المزيد (${meals.length - window.adminMealsRenderLimit} متبقي)
+                </button>
+            </div>
+        `;
+    }
 }
+
+// Global Load More Handler
+window.loadMoreAdminMeals = function() {
+    if (!window.adminMealsRenderLimit) window.adminMealsRenderLimit = 30;
+    window.adminMealsRenderLimit += 30;
+    renderMeals(); // Re-render with new limit
+};
 
 function updateMealsStats(meals) {
     const statsEl = document.getElementById('mealsStats');
@@ -327,6 +397,7 @@ function updateMealsStats(meals) {
 }
 
 function filterMeals(catId) {
+    window.adminMealsRenderLimit = 30; // Reset limit on filter
     renderMeals(catId);
 }
 

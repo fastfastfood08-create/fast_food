@@ -173,25 +173,8 @@ function renderCategories() {
     
     // إضافة باقي الفئات
     html += categories.map(cat => {
-        let iconHtml;
-        const icon = cat.icon ? cat.icon.trim() : '';
-
-        // 1. Check for Inline SVG
-        if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
-             iconHtml = icon;
-        }
-        // 2. Check for Image Path (Extensions, HTTP, Data URI, Slash)
-        else if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/') || icon.includes('icons/')) {
-             let src = icon;
-             if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
-                 src = '/' + src;
-             }
-             iconHtml = `<img src="${src}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
-        } 
-        // 3. Fallback (Emoji/Text)
-        else {
-             iconHtml = icon;
-        }
+        // Use centralized helper
+        const iconHtml = window.getCategoryIconHtml ? window.getCategoryIconHtml(cat, 'height: 100%;') : cat.icon;
 
         return `
         <button class="category-card ${currentCategory === cat.id ? 'active' : ''}" onclick="filterByCategory(${cat.id})">
@@ -225,11 +208,19 @@ function setupSearch() {
     });
 }
 
+const MEALS_CHUNK_SIZE = 12;
+let currentRenderedCount = MEALS_CHUNK_SIZE;
+
 // عرض الوجبات
-function renderMeals() {
+function renderMeals(reset = true) {
     const container = document.getElementById('mealsContainer');
     if (!container) return;
     
+    if (reset) {
+        currentRenderedCount = MEALS_CHUNK_SIZE;
+        container.innerHTML = ''; // Clear only on reset
+    }
+
     let meals = getMeals().filter(m => m.active);
     
     // تصفية حسب الفئة
@@ -256,21 +247,7 @@ function renderMeals() {
         container.innerHTML = `
             <div class="no-meals">
                 <div class="no-meals-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Plate -->
-                        <circle cx="12" cy="12" r="9" stroke="#E5E7EB" stroke-width="2"/>
-                        <circle cx="12" cy="12" r="6" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="2 2"/>
-                        
-                        <!-- Fork (Left, slightly tilted) -->
-                        <path d="M7 6V11C7 12 8 13 8 13H5C5 13 6 12 6 11V6" stroke="#9CA3AF" stroke-width="1.5"/>
-                        <line x1="6.5" y1="6" x2="6.5" y2="10" stroke="#9CA3AF"/>
-                        <line x1="5.5" y1="13" x2="5.5" y2="18" stroke="#9CA3AF" stroke-width="1.5"/>
-                        
-                        <!-- Spoon (Right, slightly tilted) -->
-                        <path d="M17 18V13C17 13 19 11 19 8C19 6 18 5 17 5C16 5 15 6 15 8C15 11 17 13 17 13Z" stroke="#9CA3AF" stroke-width="1.5"/>
-                        
-
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke="#E5E7EB" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="2 2"/><path d="M7 6V11C7 12 8 13 8 13H5C5 13 6 12 6 11V6" stroke="#9CA3AF" stroke-width="1.5"/><line x1="6.5" y1="6" x2="6.5" y2="10" stroke="#9CA3AF"/><line x1="5.5" y1="13" x2="5.5" y2="18" stroke="#9CA3AF" stroke-width="1.5"/><path d="M17 18V13C17 13 19 11 19 8C19 6 18 5 17 5C16 5 15 6 15 8C15 11 17 13 17 13Z" stroke="#9CA3AF" stroke-width="1.5"/></svg>
                 </div>
                 <h3>لا توجد وجبات</h3>
                 <p>${searchQuery ? 'لم نجد وجبات تطابق بحثك' : 'لا توجد وجبات في هذه الفئة'}</p>
@@ -279,8 +256,38 @@ function renderMeals() {
         return;
     }
     
-    container.innerHTML = meals.map((meal, index) => createMealCard(meal, index)).join('');
+    // Slice for pagination
+    const visibleMeals = meals.slice(0, currentRenderedCount);
+    const html = visibleMeals.map((meal, index) => createMealCard(meal, index)).join('');
+    
+    container.innerHTML = html;
+    
+    // Show More Button
+    const btnId = 'btnLoadMoreMeals';
+    const oldBtn = document.getElementById(btnId);
+    if (oldBtn) oldBtn.remove();
+    
+    if (meals.length > currentRenderedCount) {
+        const remaining = meals.length - currentRenderedCount;
+        const btnContainer = document.createElement('div');
+        btnContainer.id = btnId;
+        btnContainer.style.cssText = 'width:100%; text-align:center; margin-top:30px; padding-bottom:20px; grid-column: 1 / -1;';
+        btnContainer.innerHTML = `
+            <button onclick="loadMoreMeals()" class="btn btn-outline" style="padding: 12px 30px; border-radius: 50px;">
+                عرض المزيد (${remaining} متبقي)
+            </button>
+        `;
+        container.parentElement.appendChild(btnContainer); // Append to parent (wrapper) or inside grid?
+        // Usually inside grid might break layout if grid-cols is fixed.
+        // Let's rely on CSS grid-column: 1/-1.
+        container.appendChild(btnContainer);
+    }
 }
+
+window.loadMoreMeals = function() {
+    currentRenderedCount += MEALS_CHUNK_SIZE;
+    renderMeals(false); // No reset
+};
 
 // إعداد تأثير التمرير للرأس
 function setupHeaderScroll() {
@@ -314,48 +321,19 @@ function createMealCard(meal, index) {
     const category = getCategories().find(c => c.id === meal.categoryId);
     
     // Determine Image Content
+    // Determine Image Content using centralized helper
+    // 2.2 scaling used to be passed, but new helper handles sizing internally via CSS layout.
+    // We can pass empty strings for styles to rely on default full-width/height.
     let imageContent = '';
     
     if (window.getMealImageOrPlaceholder) {
-        // Use existing helper if available (it might already handle fallbacks, but let's be explicit)
-        // If the helper is just for formatting/sizing, we might need to pass the fallback manually?
-        // Let's assume we want to enforce Category Image/Icon as fallback here.
-        
-        if (meal.image) {
-             imageContent = window.getMealImageOrPlaceholder(meal, '', '', 2.2);
-        } else if (category && category.icon) {
-             const icon = category.icon.trim();
-             
-             // A. Inline SVG
-             if (icon.toLowerCase().startsWith('<svg') || icon.includes('<svg')) {
-                 imageContent = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:20px;">${icon}</div>`;
-             }
-             // B. Image Path
-             else if (icon.match(/\.(svg|png|jpg|jpeg|webp)$/i) || icon.startsWith('data:') || icon.startsWith('http') || icon.includes('/')) {
-                 let src = icon;
-                 if (!src.startsWith('/') && !src.startsWith('http') && !src.startsWith('data:')) {
-                     src = '/' + src;
-                 }
-                 imageContent = `<img src="${src}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">`;
-             } 
-             // C. Emoji/Text
-             else {
-                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${icon}</div>`;
-             }
-        } else {
-             // Fallback default
-             imageContent = `<img src="/icons/default-meal.svg" alt="${meal.name}" loading="lazy">`; 
-        }
+        imageContent = window.getMealImageOrPlaceholder(meal);
     } else {
-        // Manual Logic (fallback if helper missing)
+        // Fallback for safety
         if (meal.image) {
             imageContent = `<img src="${meal.image}" alt="${meal.name}" loading="lazy">`;
-        } else if (category && category.icon) {
-             if (category.icon.match(/\.(svg|png|jpg|jpeg)$/i) || category.icon.startsWith('data:') || category.icon.startsWith('http') || category.icon.startsWith('/')) {
-                 imageContent = `<img src="${category.icon}" alt="${category.name}" loading="lazy" style="object-fit: contain; padding: 20px;">`;
-             } else {
-                 imageContent = `<div style="font-size: 4rem; display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">${category.icon}</div>`;
-             }
+        } else {
+            imageContent = `<img src="/icons/default-meal.svg" alt="${meal.name}" loading="lazy">`; 
         }
     }
 

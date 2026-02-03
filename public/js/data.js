@@ -5,15 +5,7 @@
 
 // Fallback Data (Matches Seed)
 const FALLBACK_DATA = {
-    categories: [
-        { id: 1, name: 'بيتزا', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#F59E0B" stroke="#B45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 11h.01"/><path d="M11 15h.01"/><path d="M16.5 4a3 3 0 0 0-2.83 2h-3.34a3 3 0 0 0-2.83-2A3 3 0 0 0 4.5 7v.29A13 13 0 0 0 12 20a13 13 0 0 0 7.5-12.71V7a3 3 0 0 0-3-3z"/><path d="M6 9l2 2" stroke="#FCD34D" stroke-width="1"/><path d="M14 6l1 1" stroke="#FCD34D" stroke-width="1"/><path d="M9 16l1-1" stroke="#FCD34D" stroke-width="1"/></svg>', order: 1, active: true },
-        { id: 2, name: 'برغر', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13C6 13.5 6 14 7 14.5C7.5 14.75 8.5 15 9.5 15C10.5 15 11 14.5 11 14.5C11 14.5 11.5 15 12.5 15C13.5 15 14.5 14.75 15 14.5C15.5 14.25 15.5 13.75 16 13.5" stroke="#166534" stroke-width="2"/><path d="M19 19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V17H19V19Z" fill="#F59E0B" stroke="#B45309"/><path d="M5 10V9C5 6.2 7.2 4 10 4H14C16.8 4 19 6.2 19 9V10H5Z" fill="#FCD34D" stroke="#B45309"/><line x1="5" y1="13" x2="19" y2="13" stroke="#991B1B" stroke-width="3"/></svg>', order: 2, active: true },
-        { id: 3, name: 'شاورما', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V5C13 3.34 11.66 2 10 2C8.34 2 7 3.34 7 5V10" fill="#FDE68A"/><path d="M7 10L5 22L15 20L13 10H7Z" fill="#FCD34D"/><path d="M15 12L19 14L17 20" stroke="#EF4444" fill="#FCA5A5"/><path d="M10 2V22" stroke="#D97706" stroke-width="1" stroke-dasharray="2 2"/><path d="M10 6H12" stroke="#92400E"/><path d="M10 14H12" stroke="#92400E"/><path d="M10 18H12" stroke="#92400E"/></svg>', order: 3, active: true },
-        { id: 4, name: 'طاكوس', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11C3 7.5 5 5 8 4C11 3 15 3 18 6C20 8 21 11 21 15V19C21 20.1 20.1 21 19 21H14" fill="#FDE68A"/><path d="M6 14C6 14 7 12 10 12C13 12 14 14 14 14" stroke="#166534"/><path d="M10 16C10 16 11 15 13 15" stroke="#EF4444"/><path d="M3 11V19C3 20.1 3.9 21 5 21H10" fill="#FBBF24"/></svg>', order: 4, active: true },
-        { id: 5, name: 'سندويتشات', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8C4 5.79 5.79 4 8 4H16C18.21 4 20 5.79 20 8V10H4V8Z" fill="#FCD34D"/><path d="M4 14H20V17C20 19.21 18.21 21 16 21H8C5.79 21 4 19.21 4 17V14Z" fill="#FCD34D"/><path d="M4 10H20" stroke="#10B981" stroke-width="3"/><path d="M4 14H20" stroke="#EF4444" stroke-width="2"/></svg>', order: 5, active: true },
-        { id: 6, name: 'مشروبات', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6h10v11a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4V6z" fill="#DBEAFE"/><path d="M15 6V3a1 1 0 0 0-1-1H9.95" stroke="#1D4ED8"/><line x1="6" y1="10" x2="18" y2="10" stroke="#93C5FD"/><path d="M9 13L10 17" stroke="#1D4ED8" stroke-width="1" stroke-linecap="round"/><path d="M14 11L13 15" stroke="#1D4ED8" stroke-width="1" stroke-linecap="round"/></svg>', order: 6, active: true },
-        { id: 7, name: 'تحلية', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D946EF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L12 5L14 2" stroke="#BE185D"/><path d="M12 21a7 7 0 0 0 7-7c0-2-1-4-2-4H7c-1 0-2 2-2 4a7 7 0 0 0 7 7z" fill="#FCE7F3"/><path d="M12 21V10" stroke="#F472B6"/><path d="M7 10L17 10" stroke="#BE185D"/></svg>', order: 7, active: true }
-    ],
+    categories: [],
     settings: {
         restaurantName: '',
         phone: '0555123456',
@@ -26,16 +18,7 @@ const FALLBACK_DATA = {
         delivery: { enabled: true, type: 'fixed', fixedCost: 200 },
         adminPassword: 'admin123' // Fallback password
     },
-    meals: [
-         { id: 1, categoryId: 1, name: 'بيتزا مارغريتا', description: 'صلصة طماطم طازجة، جبن موزاريلا، ريحان طازج', image: '', price: 800, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'صغيرة', price: 800 }, { name: 'وسط', price: 1200 }, { name: 'كبيرة', price: 1600 }] },
-         { id: 2, categoryId: 1, name: 'بيتزا خضار', description: 'فلفل ملون، زيتون، فطر، بصل، طماطم، جبن موزاريلا', image: '', price: 900, active: true, popular: false, order: 2, hasSizes: true, sizes: [{ name: 'Classic', price: 900 }, { name: 'Mega', price: 1400 }, { name: 'Family', price: 1900 }] },
-         { id: 3, categoryId: 1, name: 'بيتزا اللحم', description: 'لحم مفروم، فلفل، بصل، جبن موزاريلا، صلصة خاصة', image: '', price: 1000, active: true, popular: true, order: 3, hasSizes: true, sizes: [{ name: 'صغيرة', price: 1000 }, { name: 'وسط', price: 1500 }, { name: 'كبيرة', price: 2000 }] },
-         { id: 5, categoryId: 2, name: 'برغر كلاسيك', description: 'لحم بقري، جبن شيدر، خس، طماطم، بصل، صلصة خاصة', image: '', price: 600, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'Single', price: 600 }, { name: 'Double', price: 900 }, { name: 'Triple', price: 1200 }] },
-         { id: 8, categoryId: 3, name: 'شاورما دجاج', description: 'دجاج متبل، بطاطس، ثوم، مخلل، خبز عربي', image: '', price: 400, active: true, popular: true, order: 1, hasSizes: true, sizes: [{ name: 'عادي', price: 400 }, { name: 'جامبو', price: 600 }] },
-         { id: 11, categoryId: 4, name: 'طاكوس دجاج', description: 'دجاج متبل، جبن، خس، صلصة حارة', image: '', price: 350, active: true, popular: false, order: 1, hasSizes: false, sizes: [] },
-         { id: 16, categoryId: 6, name: 'كوكا كولا', description: 'مشروب غازي بارد', image: '', price: 100, active: true, popular: false, order: 2, hasSizes: false, sizes: [] },
-         { id: 18, categoryId: 7, name: 'تيراميسو', description: 'كعكة إيطالية بالقهوة والماسكاربوني', image: '', price: 400, active: true, popular: true, order: 1, hasSizes: false, sizes: [] }
-    ]
+    meals: []
 };
 
 // Global State
@@ -54,7 +37,7 @@ let cachedMeals = [];
 
 try {
     cachedOrders = JSON.parse(localStorage.getItem('cachedOrders') || '[]');
-    cachedCategories = JSON.parse(localStorage.getItem('cachedCategories') || '[]');
+    cachedCategories = JSON.parse(localStorage.getItem('cachedCategories_v2') || '[]');
     // Fallback to FALLBACK_DATA only if cache is empty? No, better start empty or cached.
     // Actually FALLBACK_DATA is useful for offline/first run demo.
     // If cache exists, use it. If not, fallback data is used in getters if array empty?
@@ -62,7 +45,7 @@ try {
     // We should overwrite appState with cache if available.
     if (cachedCategories.length === 0) cachedCategories = FALLBACK_DATA.categories; 
 
-    cachedMeals = JSON.parse(localStorage.getItem('cachedMeals') || '[]');
+    cachedMeals = JSON.parse(localStorage.getItem('cachedMeals_v2') || '[]');
     if (cachedMeals.length === 0) cachedMeals = FALLBACK_DATA.meals;
 
 } catch (e) {
@@ -117,12 +100,17 @@ async function initializeData(options = {}) {
                 if (data) {
                     if (key === 'categories') {
                         appState.categories = data;
-                        localStorage.setItem('cachedCategories', JSON.stringify(data));
+                        localStorage.setItem('cachedCategories_v2', JSON.stringify(data));
                         document.dispatchEvent(new CustomEvent('categories-updated'));
                     }
                     else if (key === 'meals') {
-                        appState.meals = data;
-                        localStorage.setItem('cachedMeals', JSON.stringify(data));
+                        if (data && data.meals) {
+                            appState.meals = data.meals;
+                            // We could store pagination here if needed
+                        } else {
+                            appState.meals = Array.isArray(data) ? data : [];
+                        }
+                        localStorage.setItem('cachedMeals_v2', JSON.stringify(appState.meals));
                         document.dispatchEvent(new CustomEvent('meals-updated'));
                     }
                     else if (key === 'settings') {
@@ -130,7 +118,16 @@ async function initializeData(options = {}) {
                         // Cache settings for next load
                         localStorage.setItem('cachedSettings', JSON.stringify(appState.settings));
                     }
-                    else if (key === 'orders')appState.orders = (data || []).map(o => normalizeOrder(o));
+                    else if (key === 'orders') {
+                        // Handle Paginated Response
+                        if (data && data.orders) {
+                            appState.orders = data.orders.map(o => normalizeOrder(o));
+                            appState.ordersPagination = data.pagination;
+                        } else {
+                            // Fallback for old array format or empty
+                            appState.orders = (Array.isArray(data) ? data : []).map(o => normalizeOrder(o));
+                        }
+                    }
                     
                     loadedFlags[key] = true;
                 } else {
@@ -225,6 +222,10 @@ function getSettings() {
 
 function getOrders() {
     return appState.orders || [];
+}
+
+function getOrdersPagination() {
+    return appState.ordersPagination || null;
 }
 
 // Cart is Client-Side Only
@@ -489,8 +490,17 @@ function saveOrders(orders) {
 
 async function refreshOrders() {
     try {
-        const serverOrders = await ApiClient.getOrders();
-        let combinedOrders = (serverOrders || []).map(o => normalizeOrder(o));
+        const response = await ApiClient.getOrders();
+        let serverOrders = [];
+        
+        if (response && response.orders) {
+            serverOrders = response.orders;
+            appState.ordersPagination = response.pagination;
+        } else if (Array.isArray(response)) {
+            serverOrders = response;
+        }
+
+        let combinedOrders = serverOrders.map(o => normalizeOrder(o));
 
         // Merge Local Orders
         // Local merge removed
@@ -510,6 +520,44 @@ async function refreshOrders() {
         // On error, don't wipe data, just keep existing or reload local?
         // Safe to just return existing
         return appState.orders;
+    }
+}
+
+async function loadMoreOrders() {
+    if (!appState.ordersPagination) return;
+    const { page, totalPages, limit } = appState.ordersPagination;
+    if (page >= totalPages) return;
+
+    try {
+        const nextPage = page + 1;
+        const response = await ApiClient.getOrders(nextPage, limit);
+        
+        if (response && response.orders) {
+            const newOrders = response.orders.map(o => normalizeOrder(o));
+            // Append
+            appState.orders = [...appState.orders, ...newOrders];
+            appState.ordersPagination = response.pagination;
+            
+            document.dispatchEvent(new CustomEvent('orders-updated'));
+            return newOrders;
+        }
+    } catch (e) {
+        console.error("Failed to load more orders", e);
+    }
+}
+
+async function searchOrders(query) {
+    try {
+        const response = await ApiClient.getOrders(1, 50, query); // Always page 1 for new search
+        
+        if (response && response.orders) {
+            appState.orders = response.orders.map(o => normalizeOrder(o));
+            appState.ordersPagination = response.pagination;
+            
+            document.dispatchEvent(new CustomEvent('orders-updated'));
+        }
+    } catch (e) {
+        console.error("Search failed", e);
     }
 }
 

@@ -44,13 +44,57 @@ export async function GET(request) {
         return NextResponse.json([]); 
     }
 
-    const meals = await getMeals();
-    
-    if (categoryId) {
-        const filtered = meals.filter(m => m.categoryId === parseInt(categoryId));
-        return NextResponse.json(filtered);
+    // If pagination params are present, bypass the 'all-meals' cache and query directly
+    const page = searchParams.get('page');
+    const limit = searchParams.get('limit');
+
+    if (page || limit || categoryId) {
+        const pageNum = parseInt(page || '1');
+        const limitNum = parseInt(limit || '50');
+        const skip = (pageNum - 1) * limitNum;
+        
+        const where = {};
+        if (categoryId) where.categoryId = parseInt(categoryId);
+        if (!isNaN(parseInt(searchParams.get('active')))) where.active = searchParams.get('active') === 'true';
+
+        const [meals, total] = await Promise.all([
+             prisma.meal.findMany({
+                where,
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    image: true,
+                    price: true,
+                    categoryId: true,
+                    active: true,
+                    popular: true,
+                    order: true,
+                    hasSizes: true,
+                    sizes: { select: { id: true, name: true, price: true } },
+                    category: { select: { id: true, name: true } }
+                },
+                orderBy: { order: 'asc' },
+                skip: page ? skip : undefined,
+                take: limit ? limitNum : undefined
+            }),
+            prisma.meal.count({ where })
+        ]);
+        
+        return NextResponse.json({
+            meals,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        });
     }
-    
+
+    // Default behavior: Fetch ALL (cached) - Backward compatibility for initial load if needed, 
+    // but we should encourage using pagination.
+    const meals = await getMeals();
     return NextResponse.json(meals);
   } catch (error) {
     console.error("GET /api/meals error:", error);

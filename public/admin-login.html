@@ -52,22 +52,29 @@
              initializeData({ settings: true });
         });
 
-        async function performLogin(event) {
+        function performLogin(event) {
             event.preventDefault();
             const passwordInput = document.getElementById('loginPassword');
             const password = passwordInput.value;
             
-            // Ensure settings are loaded
-            await initializeData({ settings: true });
+            // Sync check using loaded/cached data for instant response
             const settings = getSettings();
             
             if (password === settings.adminPassword) {
+                // Determine destination
+                let dest = 'admin-dashboard.html';
+                // Check if we have a saved redirect
+                const redirect = sessionStorage.getItem('loginRedirect');
+                if (redirect) {
+                    dest = redirect;
+                    sessionStorage.removeItem('loginRedirect');
+                }
+
                 sessionStorage.setItem('adminLoggedIn', 'true');
                 showToast('تم تسجيل الدخول بنجاح', 'success');
-                // Redirect
-                setTimeout(() => {
-                    window.location.href = 'admin-dashboard.html';
-                }, 1000);
+                
+                // Immediate redirect attempt
+                window.location.href = dest;
             } else {
                 showToast('كلمة المرور غير صحيحة', 'error');
                 passwordInput.classList.add('shake');

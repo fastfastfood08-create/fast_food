@@ -1,0 +1,39 @@
+Checking directory: c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories
+Found 10 files.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_5wu4u95wu4u95wu4 (1).svg (944x1136)
+  Removing background path with fill #22231f
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_5wu4u95wu4u95wu4 (2).svg (944x1136)
+  Removing background path with fill #181816
+  Removing background path with fill #373732
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_5wu4u95wu4u95wu4.svg (944x1136)
+  Removing background path with fill #1c1d1a
+  Removing background path with fill #1b1917
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_racvs5racvs5racv (1).svg (2816x1536)
+  Removing background path with fill #843f0f
+  Removing background path with fill #878786
+  Removing background path with fill #e99a42
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_racvs5racvs5racv (2).svg (2816x1536)
+  Removing background path with fill #090606
+  Removing background path with fill #ebebe9
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_racvs5racvs5racv.svg (2816x1536)
+  Removing background path with fill #444443
+  Removing background path with fill #090c07
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_tsmci9tsmci9tsmc.svg (1408x3040)
+  Removing background path with fill #21211e
+  Removing background path with fill #070706
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_u63yctu63yctu63y.svg (1408x3040)
+  Removing background path with fill #1c1c19
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_z4vdkdz4vdkdz4vd (1).svg (2816x1536)
+  Removing background path with fill #d5d5d4
+  Saved.
+Processing c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\public\icons\categories\Gemini_Generated_Image_z4vdkdz4vdkdz4vd.svg (2816x1536)
+  Removing background path with fill #e2e3e2
+  Saved.

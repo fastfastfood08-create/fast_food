@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for background updates
     document.addEventListener('categories-updated', renderCategories);
     
-    // Load Static Icons
-    loadStaticIcons();
+    // Load Static Icons - MOVED TO MODAL OPEN
+    // loadStaticIcons();
 
     // Setup Category SVG Input
     const categoryIconInput = document.getElementById('categoryIconInput');
@@ -77,10 +77,8 @@ function renderCategories() {
             
             <div class="category-card-body">
                 <div class="category-icon-wrapper ${!cat.active ? 'dimmed' : ''}">
-                    <span class="category-icon">
-                        ${(cat.icon && (cat.icon.startsWith('data:') || cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('/icons/') || cat.icon.match(/\.(svg|png|jpg|jpeg)$/i))) 
-                            ? `<img src="${cat.icon}" alt="${cat.name}" style="width:100%; height:100%; object-fit:contain;">` 
-                            : cat.icon}
+                    <span class="category-icon" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                        ${window.getCategoryIconHtml ? window.getCategoryIconHtml(cat, 'height:100%;') : cat.icon}
                     </span>
                 </div>
                 <h3 class="category-name">${cat.name}</h3>
@@ -145,6 +143,9 @@ function openCategoryModal(id = null) {
         document.getElementById('categoryModalTitle').textContent = 'إضافة قسم جديد';
         highlightSelectedStaticIcon(null);
     }
+    
+    // Lazy Load Icons
+    loadStaticIcons();
     
     document.getElementById('categoryModal').classList.add('active');
 }
@@ -256,7 +257,15 @@ async function toggleCategoryActive(id) {
 // ===================================
 // Static Icons Logic
 // ===================================
+// ===================================
+// Static Icons Logic
+// ===================================
+let iconsLoaded = false;
+let allIconsCache = [];
+
 async function loadStaticIcons() {
+    if (iconsLoaded) return; // Already loaded
+    
     const list = document.getElementById('availableIconsList');
     if (!list) return;
 
@@ -265,12 +274,19 @@ async function loadStaticIcons() {
         const data = await response.json();
         
         if (data && data.icons && data.icons.length > 0) {
-            list.innerHTML = data.icons.map(icon => `
-                <div class="static-icon-item" onclick="selectStaticIcon('${icon.path}', this)" title="${icon.name}">
-                    <img src="${icon.path}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
-                </div>
-            `).join('');
+            allIconsCache = data.icons;
             
+            // Render first batch only to avoid lag
+            renderIconsBatch(list, allIconsCache, 0, 50);
+            
+            // If more icons, add a "Load More" trigger or just render them in next frame
+            if (allIconsCache.length > 50) {
+                // Use setTimeout to render the rest without blocking UI
+                setTimeout(() => {
+                    renderIconsBatch(list, allIconsCache, 50, allIconsCache.length);
+                }, 100);
+            }
+
             // Add Styles for selection
             if (!document.getElementById('staticIconStyles')) {
                 const style = document.createElement('style');
@@ -298,15 +314,35 @@ async function loadStaticIcons() {
                         background: #fffbeb;
                         box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
                     }
+                    .static-icon-item img {
+                        will-change: transform;
+                    }
                 `;
                 document.head.appendChild(style);
             }
+            
+            iconsLoaded = true;
         } else {
             list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:10px; font-size:0.8rem;">لا توجد أيقونات ثابتة</div>';
         }
     } catch (e) {
         console.error('Failed to load icons', e);
         list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:10px; font-size:0.8rem; color:red;">فشل تحميل الأيقونات</div>';
+    }
+}
+
+function renderIconsBatch(container, icons, start, end) {
+    const batch = icons.slice(start, end);
+    const html = batch.map(icon => `
+        <div class="static-icon-item" onclick="selectStaticIcon('${icon.path}', this)" title="${icon.name}">
+            <img src="${icon.path}" loading="lazy" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+        </div>
+    `).join('');
+    
+    if (start === 0) {
+        container.innerHTML = html;
+    } else {
+        container.insertAdjacentHTML('beforeend', html);
     }
 }
 

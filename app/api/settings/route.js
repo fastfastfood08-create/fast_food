@@ -63,7 +63,10 @@ export async function PUT(request) {
     
   } catch (error) {
     console.error('Settings update error:', error);
-    return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
+    return NextResponse.json({ 
+        error: 'Failed to save settings: ' + (error.message || 'Unknown error'),
+        details: error.toString()
+    }, { status: 500 });
   }
 }
 

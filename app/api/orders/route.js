@@ -49,23 +49,55 @@ export async function GET(request) {
         const id = searchParams.get('id');
         const phone = searchParams.get('phone');
 
+        const search = searchParams.get('search');
+
         let whereClause = {};
         if (id) {
             whereClause.id = parseInt(id);
         } else if (phone) {
             whereClause.customerPhone = { contains: phone.trim() };
+        } else if (search) {
+            const query = search.trim();
+            // Check if query is numeric (for ID or precise phone)
+            const isNumeric = /^\d+$/.test(query);
+            
+            whereClause = {
+                OR: [
+                    { customerName: { contains: query, mode: 'insensitive' } },
+                    { customerPhone: { contains: query } },
+                    // If numeric, also allow searching by ID
+                    ...(isNumeric ? [{ id: parseInt(query) }] : [])
+                ]
+            };
         }
 
-        const orders = await prisma.order.findMany({
-            where: whereClause,
-            include: { items: true },
-            orderBy: { createdAt: 'desc' }
-        });
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const skip = (page - 1) * limit;
 
-        console.log(`Fetched ${orders.length} orders from DB`);
+        const [orders, totalOrders] = await Promise.all([
+            prisma.order.findMany({
+                where: whereClause,
+                include: { items: true },
+                orderBy: { createdAt: 'desc' },
+                skip: skip,
+                take: limit
+            }),
+            prisma.order.count({ where: whereClause })
+        ]);
+
+        console.log(`Fetched ${orders.length} orders from DB (Page ${page})`);
 
         const cleanOrders = orders.map(normalizeOrder);
-        return NextResponse.json(cleanOrders);
+        return NextResponse.json({
+            orders: cleanOrders,
+            pagination: {
+                total: totalOrders,
+                page: page,
+                limit: limit,
+                totalPages: Math.ceil(totalOrders / limit)
+            }
+        });
 
     } catch (error) {
         console.error("GET /api/orders CRITICAL ERROR:", error);

@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 export async function GET() {
   try {
     const iconsDir = path.join(process.cwd(), 'public', 'icons', 'categories');
     
-    if (!fs.existsSync(iconsDir)) {
-      return NextResponse.json({ icons: [] });
+    // Check if dir exists
+    try {
+        await fs.access(iconsDir);
+    } catch {
+        return NextResponse.json({ icons: [] });
     }
 
-    const files = fs.readdirSync(iconsDir);
+    const files = await fs.readdir(iconsDir);
     const svgFiles = files.filter(file => file.toLowerCase().endsWith('.svg'));
     
     // Create full paths for the frontend to use

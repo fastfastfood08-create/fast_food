@@ -4299,3 +4299,31 @@ input:focus + .slider {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
 }
+/* ... existing content ... */
+
+/* Animate Spin Utility */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+    transform-origin: center;
+}
+
+/* Smoother Save Button Loading */
+.btn-floating-save {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 140px; /* Prevent width jump */
+}
+
+.btn-floating-save:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+    background: #ea580c; /* Slightly darker */
+}

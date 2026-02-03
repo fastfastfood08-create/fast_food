@@ -3,6 +3,10 @@
 // ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Instant Load (Optimistic from Cache)
+    loadSettings();
+    
+    // 2. Background Refresh
     initializeData({ settings: true }).then(() => {
         loadSettings();
     });
@@ -29,8 +33,6 @@ function loadSettings() {
         setValue('settingFixedCost', settings.delivery.fixedCost);
         setValue('settingCostPerKm', settings.delivery.costPerKm);
         setValue('settingMaxDistance', settings.delivery.maxDistance);
-        
-        /* Location UI Removed */
     }
     
     toggleDeliveryMode();
@@ -61,24 +63,32 @@ function toggleDeliveryMode() {
 }
 
 // detectRestaurantLocation Removed
-// updateCoordsDisplay Removed - Logic cleaned from loadSettings below
+// updateCoordsDisplay Removed
 
 async function handleSaveSettings() {
     const btn = document.querySelector('.btn-floating-save');
-    const originalText = btn ? btn.innerHTML : 'حفظ';
+    const originalText = btn ? btn.innerHTML : 'حفظ التغييرات';
+    
     if (btn) {
-        btn.innerHTML = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> جاري الحفظ...`;
+        // Use a clean spinner SVG with the new CSS class
+        btn.innerHTML = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> <span>جاري الحفظ...</span>`;
         btn.disabled = true;
+        btn.style.opacity = '0.9'; // Visual feedback
     }
     
     try {
-        let settings = getSettings() || {};
+        // Deep clone to avoid mutating reference before save (though we replace it anyway)
+        let settings = JSON.parse(JSON.stringify(getSettings() || {}));
         
-        // Basic Info
-        settings.restaurantName = document.getElementById('settingName').value;
-        settings.phone = document.getElementById('settingPhone').value;
-        settings.address = document.getElementById('settingAddress').value;
-        settings.isOpen = document.getElementById('settingIsOpen').checked;
+        // Basic Info - Safe Extract
+        const safeVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+        
+        settings.restaurantName = safeVal('settingName');
+        settings.phone = safeVal('settingPhone');
+        settings.address = safeVal('settingAddress');
+        
+        const openEl = document.getElementById('settingIsOpen');
+        settings.isOpen = openEl ? openEl.checked : true;
         
         // Delivery
         if (!settings.delivery) settings.delivery = {};
@@ -87,18 +97,17 @@ async function handleSaveSettings() {
         const selectedType = document.querySelector('input[name="deliveryType"]:checked');
         settings.delivery.type = selectedType ? selectedType.value : 'fixed';
         
-        settings.delivery.fixedCost = parseFloat(document.getElementById('settingFixedCost')?.value) || 0;
+        // Ensure numbers are valid
+        const parseNum = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return 0;
+            const val = parseFloat(el.value);
+            return isNaN(val) ? 0 : val;
+        };
         
-        // These inputs might be hidden/removed, so we use optional chaining or handle specific cases
-        if (document.getElementById('settingCostPerKm')) {
-            settings.delivery.costPerKm = parseFloat(document.getElementById('settingCostPerKm').value) || 0;
-        }
-        if (document.getElementById('settingMaxDistance')) {
-            settings.delivery.maxDistance = parseFloat(document.getElementById('settingMaxDistance').value) || 0;
-        }
-
-        // Location - We preserve existing or set to null if intended, but UI is gone.
-        // We do NOT update settings.location here as the inputs are removed.
+        settings.delivery.fixedCost = parseNum('settingFixedCost');
+        settings.delivery.costPerKm = parseNum('settingCostPerKm');
+        settings.delivery.maxDistance = parseNum('settingMaxDistance');
         
         // Save
         if (typeof updateSettingsData === 'function') {
@@ -111,19 +120,26 @@ async function handleSaveSettings() {
         hideSaveBar();
         
     } catch (e) {
-        showToast('فشل حفظ الإعدادات: ' + e.message, 'error');
-        console.error(e);
+        console.error("Save Error:", e);
+        showToast(e.message || 'فشل حفظ الإعدادات', 'error');
     } finally {
         if (btn) {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            // Restore original text with a slight delay for smoothness
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.opacity = '';
+            }, 300);
         }
     }
 }
 
 function setupChangeDetection() {
+    // Debounce or just explicit 'change' for heavier inputs, 'input' for text
     const inputs = document.querySelectorAll('input, textarea');
     inputs.forEach(input => {
+        // 'input' fires on every keystroke. For a simple class toggle, it's fine.
+        // It ensures the bar appears immediately when user types.
         input.addEventListener('input', showSaveBar);
         input.addEventListener('change', showSaveBar);
     });
@@ -131,7 +147,9 @@ function setupChangeDetection() {
 
 function showSaveBar() {
     const bar = document.getElementById('saveBar');
-    if (bar) bar.classList.add('visible');
+    if (bar && !bar.classList.contains('visible')) {
+        bar.classList.add('visible');
+    }
 }
 
 function hideSaveBar() {

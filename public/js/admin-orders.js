@@ -41,9 +41,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnReset = document.getElementById('btnResetFilters');
 
     if (searchInput) {
+        let debounceTimer;
         searchInput.addEventListener('input', () => {
-            currentSearchQuery = searchInput.value.trim().toLowerCase();
-            renderOrders();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                const query = searchInput.value.trim();
+                if (query.length > 2 || query.length === 0) {
+                     // Trigger server search
+                     // We need to implement searchOrders in data.js or api-client.js
+                     // For now, let's reuse api-client directly or through data.js helper?
+                     // data.js `refreshOrders` fetches all/paginated. 
+                     // Let's add specific search to data.js or just use local + smart fetch.
+                     
+                     // If query is empty -> reload default page
+                     if (query.length === 0) {
+                         currentSearchQuery = '';
+                         if (typeof refreshOrders === 'function') await refreshOrders();
+                     } else {
+                         // Search Mode
+                         currentSearchQuery = query.toLowerCase();
+                         if (typeof searchOrders === 'function') {
+                             showToast('جاري البحث...', 'info');
+                             await searchOrders(query);
+                         }
+                     }
+                     renderOrders();
+                }
+            }, 500);
         });
     }
 
@@ -250,6 +274,34 @@ function renderOrders() {
             </div>
         `;
     }).join('');
+
+    // Pagination Button
+    if (typeof getOrdersPagination === 'function') {
+        const panigation = getOrdersPagination();
+        if (panigation && panigation.page < panigation.totalPages) {
+            container.innerHTML += `
+                <div style="text-align: center; margin-top: 20px; padding-bottom: 20px;">
+                    <button onclick="triggerLoadMore()" class="btn-primary" id="btnLoadMoreOrders" style="padding: 10px 20px; font-size: 14px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+                        عرض المزيد (${panigation.total - (panigation.page * panigation.limit)} متبقي)
+                    </button>
+                </div>
+            `;
+            
+            // Helper for the button
+            if (!window.triggerLoadMore) {
+                window.triggerLoadMore = async function() {
+                    const btn = document.getElementById('btnLoadMoreOrders');
+                    if(btn) { btn.textContent = 'جاري التحميل...'; btn.disabled = true; }
+                    
+                    if (typeof loadMoreOrders === 'function') {
+                        await loadMoreOrders();
+                        // renderOrders will be called by event listener 'orders-updated' automatically
+                    }
+                };
+            }
+        }
+    }
 }
 
 function safeUpdateStatus(orderId, newStatus, currentStatus) {
@@ -322,9 +374,7 @@ function viewOrderDetails(orderId) {
         <div class="modal-item-row">
             <div class="item-visual" style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; margin-left: 12px; flex-shrink: 0;">
                 ${window.getMealImageOrPlaceholder ? window.getMealImageOrPlaceholder(
-                    { ...item, image: item.image, categoryId: item.categoryId }, // Pass item as meal-like object
-                    'width:100%; height:100%;',
-                    'width:100%; height:100%; object-fit:cover;'
+                    { ...item, image: item.image, categoryId: item.categoryId } // Pass item as meal-like object
                 ) : ''}
             </div>
             <div class="item-info">
