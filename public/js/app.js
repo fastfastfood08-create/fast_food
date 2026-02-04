@@ -57,8 +57,10 @@ async function initializeApp() {
 function waitForCriticalImages() {
     return new Promise((resolve) => {
         // نجمع كل الصور في الفئات وأول 8 صور في الوجبات
-        const categoryImages = Array.from(document.querySelectorAll('#categoriesContainer img'));
-        const mealImages = Array.from(document.querySelectorAll('#mealsContainer .meal-card:nth-child(-n+8) img'));
+        // Optimizing Critical Path: Only wait for what's likely above the fold.
+        // Wait for first 6 categories and first 4 meals.
+        const categoryImages = Array.from(document.querySelectorAll('#categoriesContainer img')).slice(0, 6);
+        const mealImages = Array.from(document.querySelectorAll('#mealsContainer .meal-card:nth-child(-n+4) img'));
         
         const allImages = [...categoryImages, ...mealImages];
         

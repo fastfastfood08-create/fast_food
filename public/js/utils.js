@@ -429,7 +429,7 @@ function getCategoryIconHtml(category, style = '') {
         }
         return `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; ${style}">
                     <div class="icon-inner" style="width:50%; height:50%; display:flex; align-items:center; justify-content:center;">
-                        <img src="${src}" alt="${category.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">
+                        <img src="${src}" alt="${category.name}" style="width: 100%; height: 100%; object-fit: contain;" loading="lazy" onerror="this.onerror=null;this.src='/icons/default-meal.svg';">
                     </div>
                 </div>`;
     } 

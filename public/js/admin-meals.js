@@ -334,7 +334,7 @@ function renderMeals(categoryId = 'all') {
                     } else {
                         // Safe Fallback if utils not loaded
                         imageHtml = meal.image 
-                            ? `<img src="${meal.image}" alt="${meal.name}" onerror="this.style.display='none'">` 
+                            ? `<img src="${meal.image}" alt="${meal.name}" loading="lazy" onerror="this.style.display='none'">` 
                             : `<div class="no-image">No Image</div>`;
                     }
                     return imageHtml;
