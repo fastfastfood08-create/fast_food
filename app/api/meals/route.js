@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag, unstable_cache } from 'next/cache';
 import prisma from '@/app/lib/prisma';
+import { uploadImage, deleteImage } from '@/app/lib/cloudinary';
 
 const getMeals = unstable_cache(
     async () => {
@@ -151,17 +152,45 @@ export async function POST(request) {
              select: { image: true }
         });
 
-        // Cleanup old image if different and is local
-        if (existingMeal && existingMeal.image && existingMeal.image !== body.image && existingMeal.image.startsWith('/uploads/')) {
-             try {
-                const fs = require('fs/promises');
-                const path = require('path');
-                const oldPath = path.join(process.cwd(), 'public', existingMeal.image);
-                await fs.unlink(oldPath);
-                console.log(`Cleaned up old meal image: ${oldPath}`);
-            } catch (e) {
-                if (e.code !== 'ENOENT') console.warn(`Error deleting old meal image:`, e);
+        // 🟢 CLOUDINARY LOGIC: Handle Image Upload/Cleanup
+        let finalImageUrl = body.image; // Default to incoming (could be URL or null)
+
+        // Case 1: New Image Uploaded (Base64)
+        if (body.image && body.image.startsWith('data:image')) {
+            try {
+                // Upload to Cloudinary
+                finalImageUrl = await uploadImage(body.image);
+                console.log(`Uploaded new image to Cloudinary: ${finalImageUrl}`);
+
+                // Clean up OLD image if it existed
+                if (existingMeal && existingMeal.image) {
+                     // If it was Cloudinary, delete from Cloud
+                     await deleteImage(existingMeal.image);
+                     
+                     // If it was Local (legacy), delete from FS
+                     if (existingMeal.image.startsWith('/uploads/')) {
+                        try {
+                            const fs = require('fs/promises');
+                            const path = require('path');
+                            const oldPath = path.join(process.cwd(), 'public', existingMeal.image);
+                            await fs.unlink(oldPath);
+                        } catch (e) { /* Ignore */ }
+                     }
+                }
+            } catch (uploadError) {
+                console.error('Cloudinary Upload Failed:', uploadError);
+                return NextResponse.json({ error: 'فشل رفع الصورة للسحابة' }, { status: 500 });
             }
+        } 
+        // Case 2: Image Removed (body.image is null/empty but old existed)
+        else if (!body.image && existingMeal && existingMeal.image) {
+             await deleteImage(existingMeal.image);
+             finalImageUrl = null;
+        }
+        else if (body.image !== existingMeal?.image && existingMeal?.image) {
+             // Case 3: URL changed but not base64 (maybe manually edited or special case)?
+             // Just delete old one to be safe if it was Cloudinary
+             await deleteImage(existingMeal.image);
         }
 
         meal = await prisma.meal.update({
@@ -169,7 +198,7 @@ export async function POST(request) {
             data: {
                 name: body.name,
                 description: body.description || '',
-                image: body.image || null,
+                image: finalImageUrl || null,
                 price: safePrice,
                 categoryId: catId,
                 active: body.active !== undefined ? body.active : true,
@@ -183,11 +212,24 @@ export async function POST(request) {
         });
     } else {
         // Create
+        // 🟢 CLOUDINARY LOGIC: Handle New Creation
+        let finalImageUrl = body.image;
+
+        if (body.image && body.image.startsWith('data:image')) {
+            try {
+                finalImageUrl = await uploadImage(body.image);
+                console.log(`Uploaded new image (Create) to Cloudinary: ${finalImageUrl}`);
+            } catch (uploadError) {
+                console.error('Cloudinary Upload Failed (Create):', uploadError);
+                return NextResponse.json({ error: 'فشل رفع الصورة للسحابة' }, { status: 500 });
+            }
+        }
+
         meal = await prisma.meal.create({
             data: {
                 name: body.name,
                 description: body.description || '',
-                image: body.image || null,
+                image: finalImageUrl || null,
                 price: safePrice,
                 categoryId: catId,
                 active: body.active !== undefined ? body.active : true,
@@ -232,7 +274,10 @@ export async function DELETE(request) {
         });
 
         if (meal && meal.image) {
-            // Check if it's a local upload
+            // 🟢 Cloudinary Delete
+            await deleteImage(meal.image);
+
+            // Legacy Local Check
             if (meal.image.startsWith('/uploads/')) {
                  const fs = require('fs/promises');
                  const path = require('path');
@@ -242,11 +287,7 @@ export async function DELETE(request) {
                  
                  try {
                      await fs.unlink(filePath);
-                     console.log(`Deleted image file: ${filePath}`);
-                 } catch (err) {
-                     console.warn(`Failed to delete image file: ${filePath}`, err);
-                     // Continue to delete record anyway
-                 }
+                 } catch (err) { /* Ignore */ }
             }
         }
 
