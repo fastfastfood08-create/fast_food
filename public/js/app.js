@@ -1,115 +1,85 @@
-// =====================================================
-// تطبيق الواجهة الرئيسية - Main App
+// ⚡ PERFORMANCE OPTIMIZED Main App
 // =====================================================
 
 let currentCategory = null;
 let searchQuery = '';
+
+// ⚡ Debounce helper for scroll events
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// ⚡ Throttle for high-frequency events
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
 
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-// تهيئة التطبيق - ⚡ ULTRA-FAST Version
+// تهيئة التطبيق
 async function initializeApp() {
     // تطبيق الإعدادات المحفوظة فوراً لتجنب الوميض
     loadRestaurantSettings();
 
-    // إخفاء الـ Loader فوراً إذا كانت هناك بيانات مخبأة (Cached)
-    const hasCachedData = localStorage.getItem('cachedCategories_v2') && localStorage.getItem('cachedMeals_v2');
-    
-    if (hasCachedData) {
-        // ⚡ INSTANT RENDER from Cache
-        renderCategories();
-        renderMeals();
-        
-        // إخفاء التحميل فوراً
-        const loader = document.getElementById('loadingOverlay');
-        if (loader) {
-            loader.classList.add('fade-out');
-            setTimeout(() => loader.remove(), 200);
-        }
-        
-        // ثم تحميل البيانات الجديدة في الخلفية
-        if (typeof initializeData === 'function') {
-            initializeData().then(() => {
-                loadRestaurantSettings();
-                renderCategories();
-                renderMeals();
-            });
-        }
-    } else {
-        // No cache: Show skeleton, wait for data
-        renderSkeletonLoading();
-        
-        if (typeof initializeData === 'function') {
-            await initializeData();
-        }
-        
-        loadRestaurantSettings();
-        renderCategories();
-        renderMeals();
-        
-        // إخفاء التحميل
-        const loader = document.getElementById('loadingOverlay');
-        if (loader) {
-            loader.classList.add('fade-out');
-            setTimeout(() => loader.remove(), 200);
-        }
+    // عرض واجهة التحميل الوهمية (Skeleton) فوراً
+    renderSkeletonLoading();
+
+    // ⚡ تحميل البيانات بشكل متوازي
+    if (typeof initializeData === 'function') {
+        await initializeData();
     }
     
-    // إعداد البحث
-    setupSearch();
+    // تحميل إعدادات المطعم مرة أخرى
+    loadRestaurantSettings();
     
-    // إعداد تفاعل الرأس مع التمرير
+    // ⚡ عرض المحتوى فوراً بدون انتظار الصور
+    renderCategories();
+    renderMeals();
+    setupSearch();
     setupHeaderScroll();
+
+    // إخفاء التحميل فوراً - لا تنتظر الصور!
+    const loader = document.getElementById('loadingOverlay');
+    if (loader) {
+        loader.classList.add('fade-out');
+        setTimeout(() => loader.remove(), 300);
+    }
+    
+    // ⚡ تحميل الصور في الخلفية بعد عرض الواجهة
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+            preloadVisibleImages();
+        });
+    } else {
+        setTimeout(preloadVisibleImages, 100);
+    }
 }
 
-// دالة مساعدة لانتظار تحميل الصور المهمة
-function waitForCriticalImages() {
-    return new Promise((resolve) => {
-        // نجمع كل الصور في الفئات وأول 8 صور في الوجبات
-        // Optimizing Critical Path: Only wait for what's likely above the fold.
-        // Wait for first 6 categories and first 4 meals.
-        const categoryImages = Array.from(document.querySelectorAll('#categoriesContainer img')).slice(0, 6);
-        const mealImages = Array.from(document.querySelectorAll('#mealsContainer .meal-card:nth-child(-n+4) img'));
-        
-        const allImages = [...categoryImages, ...mealImages];
-        
-        if (allImages.length === 0) {
-            resolve();
-            return;
+// ⚡ تحميل الصور المرئية في الخلفية
+function preloadVisibleImages() {
+    const images = document.querySelectorAll('.meal-image img[loading="lazy"]');
+    images.forEach(img => {
+        if (img.getBoundingClientRect().top < window.innerHeight * 2) {
+            img.loading = 'eager';
         }
-
-        let loadedCount = 0;
-        const total = allImages.length;
-        let resolved = false;
-
-        const checkDone = () => {
-            loadedCount++;
-            if (loadedCount >= total && !resolved) {
-                resolved = true;
-                resolve();
-            }
-        };
-
-        // Safety timeout (max 3 seconds waiting for images)
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                console.log('Image loading timed out, proceeding anyway...');
-                resolved = true;
-                resolve();
-            }
-        }, 3000);
-
-        allImages.forEach(img => {
-            if (img.complete) {
-                checkDone();
-            } else {
-                img.onload = checkDone;
-                img.onerror = checkDone;
-            }
-        });
     });
 }
 
@@ -353,25 +323,36 @@ window.loadMoreMeals = function() {
     renderMeals(false); // No reset
 };
 
-// إعداد تأثير التمرير للرأس
+// ⚡ إعداد تأثير التمرير للرأس - محسّن
 function setupHeaderScroll() {
     const header = document.getElementById('mainHeader');
     if (!header) return;
 
-    const handleScroll = () => {
+    let lastScrollY = 0;
+    let ticking = false;
+
+    const updateHeader = () => {
         if (window.scrollY > 50) {
             header.classList.add('scrolled');
         } else {
             header.classList.remove('scrolled');
         }
+        ticking = false;
     };
 
-    window.addEventListener('scroll', handleScroll);
-    // استدعاء فوري لضبط الحالة عند التحميل
-    handleScroll();
+    // ⚡ Passive event listener + requestAnimationFrame
+    window.addEventListener('scroll', () => {
+        lastScrollY = window.scrollY;
+        if (!ticking) {
+            requestAnimationFrame(updateHeader);
+            ticking = true;
+        }
+    }, { passive: true });
+    
+    updateHeader();
 }
 
-// إنشاء بطاقة وجبة
+// ⚡ إنشاء بطاقة وجبة - محسّن
 function createMealCard(meal, index) {
     const displayPrice = meal.hasSizes && meal.sizes.length > 0 
         ? meal.sizes[0].price 
@@ -381,28 +362,23 @@ function createMealCard(meal, index) {
         ? 'يبدأ من ' 
         : '';
     
-    // Find category to access its icon/name
     const category = getCategories().find(c => c.id === meal.categoryId);
     
-    // Determine Image Content
-    // Determine Image Content using centralized helper
-    // 2.2 scaling used to be passed, but new helper handles sizing internally via CSS layout.
-    // We can pass empty strings for styles to rely on default full-width/height.
+    // ⚡ لا animations في البطاقات - أفضل أداء
     let imageContent = '';
     
     if (window.getMealImageOrPlaceholder) {
         imageContent = window.getMealImageOrPlaceholder(meal);
     } else {
-        // Fallback for safety
         if (meal.image) {
-            imageContent = `<img src="${meal.image}" alt="${meal.name}" loading="lazy">`;
+            imageContent = `<img src="${meal.image}" alt="${meal.name}" loading="lazy" decoding="async">`;
         } else {
             imageContent = `<img src="/icons/default-meal.svg" alt="${meal.name}" loading="lazy">`; 
         }
     }
 
     return `
-        <div class="meal-card fade-in" style="animation-delay: ${index * 0.05}s" onclick="openMealModal(${meal.id})">
+        <div class="meal-card" onclick="openMealModal(${meal.id})">
             <div class="meal-image">
                 ${imageContent}
             </div>
@@ -620,32 +596,14 @@ function handleEscapeKey(e) {
 // Scroll Logic (Categories)
 // =====================================================
 
+// ⚡ Scroll Logic (Categories) - Optimized
+// =====================================================
+
 function scrollCategories(direction) {
     const container = document.getElementById('categoriesContainer');
     if (!container) return;
     
-    // Determine scroll amount (approx width of a few cards)
-    const scrollAmount = 300 * direction; // -1 for left (prev), 1 for right (next)
-    
-    // Since we are RTL, scrolling "positive" (1) usually means going LEFT (Next items). 
-    // However, scrollLeft behavior varies by browser in RTL.
-    // Standard logic in modern browsers:
-    // RTL: scrollLeft is negative or 0 on rightmost.
-    // But easier to use scrollBy({ left: -scrollAmount })?
-    
-    // Let's assume standard behavior:
-    // Button "Next" (Left Arrow) needs to scroll to Next items.
-    // In RTL, "Next" items are to the LEFT. So we want to scroll negative X?
-    // Wait, physically they are to the left.
-    // Let's rely on scrollBy. left: -300 means move view to left (scan rightwards content in LTR, but in RTL...)
-    
-    // Simplest: Direction 1 (Next) = Scroll deeper into content.
-    // Direction -1 (Prev) = Scroll back to start.
-    
-    // In RTL, "start" is right. "End" is left.
-    // So "Next" should scroll towards the left (negative value usually).
-    
-    // Safe approach: check current direction via flow
+    const scrollAmount = 300 * direction;
     const isRTL = document.dir === 'rtl';
     const factor = isRTL ? -1 : 1;
     
@@ -654,76 +612,72 @@ function scrollCategories(direction) {
         behavior: 'smooth'
     });
     
-    // Update buttons afterwards
-    setTimeout(checkScrollButtons, 300);
+    // Check buttons after scroll animation finishes (approx)
+    if (window.requestIdleCallback) {
+        window.requestIdleCallback(() => checkScrollButtons(), { timeout: 500 });
+    } else {
+        setTimeout(checkScrollButtons, 350);
+    }
 }
 
 function checkScrollButtons() {
-    const container = document.getElementById('categoriesContainer');
-    if (!container) return;
-    
-    const prevBtn = document.getElementById('scrollLeftBtn');
-    const nextBtn = document.getElementById('scrollRightBtn');
-    
-    if (!prevBtn || !nextBtn) return;
-    
-    // Check if scrollable
-    // Use slightly larger tolerance
-    const isScrollable = container.scrollWidth > container.clientWidth + 5;
-    
-    if (!isScrollable) {
-        prevBtn.classList.remove('visible');
-        nextBtn.classList.remove('visible');
-        return;
-    }
-    
-    // Show buttons if scrollable
-    // Only show if we are NOT at the very start/end?
-    // Or just always show if scrollable for simplicity in UX?
-    // User said "if one section starts to disappear" (overflow).
-    
-    // Logic: 
-    // If we are at strict start, hide Prev.
-    // If we are at strict end, hide Next.
-    
-    // RTL handling for scrollLeft is messy cross-browser. 
-    // Chrome: scrollLeft decreases (negative) as you go left.
-    // Firefox: scrollLeft decreases (negative).
-    // Some older: scrollLeft increases.
-    
-    // Robust check:
-    // Start is when scrollLeft is close to 0 (or max positive in some impls?? No, usually 0 is start).
-    // EXCEPT in RTL, 0 is often the rightmost point (Start).
-    
-    const scrollLeft = Math.abs(container.scrollLeft);
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    
-    // Start (Right side in RTL): scrollLeft is near 0.
-    // End (Left side in RTL): scrollLeft is near maxScroll.
-    
-    // "Prev" Button (Right Scroll) -> Should appear if we have scrolled AWAY from start (scrollLeft > 0)
-    if (scrollLeft > 10) {
-        prevBtn.classList.add('visible'); // Show Prev (to go back right)
-    } else {
-        prevBtn.classList.remove('visible');
-    }
-    
-    // "Next" Button (Left Scroll) -> Should appear if we are NOT at end (scrollLeft < max)
-    if (maxScroll - scrollLeft > 10) {
-        nextBtn.classList.add('visible'); // Show Next (to go further left)
-    } else {
-        nextBtn.classList.remove('visible');
-    }
+    // ⚡ Wrap directly in rAF to prevent layout thrashing
+    requestAnimationFrame(() => {
+        const container = document.getElementById('categoriesContainer');
+        if (!container) return;
+        
+        const prevBtn = document.getElementById('scrollLeftBtn');
+        const nextBtn = document.getElementById('scrollRightBtn');
+        
+        if (!prevBtn || !nextBtn) return;
+        
+        // Use tolerance
+        if (container.scrollWidth <= container.clientWidth + 5) {
+            prevBtn.classList.remove('visible');
+            nextBtn.classList.remove('visible');
+            return;
+        }
+        
+        const scrollLeft = Math.abs(container.scrollLeft);
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        
+        // Optimize Class List manipulation
+        // Start (Right side in RTL)
+        if (scrollLeft > 10) {
+            if (!prevBtn.classList.contains('visible')) prevBtn.classList.add('visible');
+        } else {
+            if (prevBtn.classList.contains('visible')) prevBtn.classList.remove('visible');
+        }
+        
+        // End (Left side in RTL)
+        if (maxScroll - scrollLeft > 10) {
+            if (!nextBtn.classList.contains('visible')) nextBtn.classList.add('visible');
+        } else {
+            if (nextBtn.classList.contains('visible')) nextBtn.classList.remove('visible');
+        }
+    });
 }
 
-// Hook resize
-window.addEventListener('resize', checkScrollButtons);
-// Hook scroll
+// ⚡ Optimized Resize & Scroll Hooks
+// Debounced resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(checkScrollButtons, 100);
+}, { passive: true });
+
+// Passive Scroll Hook
 const catContainer = document.getElementById('categoriesContainer');
 if (catContainer) {
+    let scrollTicking = false;
     catContainer.addEventListener('scroll', () => {
-        // Throttling could be good but not strictly necessary for simple button toggle
-        checkScrollButtons();
-    });
+        if (!scrollTicking) {
+            requestAnimationFrame(() => {
+                checkScrollButtons();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
+        }
+    }, { passive: true });
 }
 

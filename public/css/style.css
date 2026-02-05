@@ -1,10 +1,11 @@
 /* ========================================
    ✨ ELEGANT RESTAURANT DESIGN
+   ⚡ PERFORMANCE OPTIMIZED
    برتقالي • أصفر • أسود - Premium Style
 ======================================== */
 
-/* Font Loading - Cairo loaded via HTML for zero render-blocking */
-/* See index.html <link rel="preload" ...> for async font loading */
+/* ⚡ Font loaded via preload in HTML for non-blocking render */
+/* No @import here - it blocks rendering! */
 
 :root {
   /* 🍊 COLORS */

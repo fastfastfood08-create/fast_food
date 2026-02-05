@@ -169,7 +169,6 @@
         height: 22px !important;
         display: block !important;
         margin: 0 !important; /* Remove any accidental margins */
-        vertical-align: middle !important;
     }
     /* Span 3: Badge (Handle separately) */
 
@@ -224,6 +223,9 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
+        /* ⚡ Optimize rendering for long lists */
+        content-visibility: auto;
+        contain-intrinsic-size: 0 1000px;
     }
     .meal-card {
         display: flex;
@@ -232,6 +234,9 @@
         height: 120px;
         padding: 0;
         overflow: hidden;
+        /* ⚡ Paint Containment */
+        contain: content;
+        will-change: transform; /* Hint for compositor */
     }
     
     .meal-image {

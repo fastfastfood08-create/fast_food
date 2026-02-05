@@ -1,0 +1,177 @@
+/* ═══════════════════════════════════════════
+   ⚡ EXTREME PERFORMANCE OPTIMIZATIONS
+   تحسينات الأداء الفائقة
+═══════════════════════════════════════════ */
+
+/* Critical Rendering Optimizations */
+
+/* Disable ALL animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* GPU Acceleration for scrollable containers */
+.categories-scroll,
+.meals-grid,
+main,
+section {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Content Visibility for out-of-viewport optimization */
+.meals-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 2000px;
+}
+
+.footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
+}
+
+/* Contain layout calculations - prevents reflow cascading */
+.meal-card {
+  contain: layout style paint;
+}
+
+.category-card {
+  contain: layout style paint;
+}
+
+/* Optimize images with aspect-ratio to prevent layout shifts */
+.meal-image {
+  aspect-ratio: 1 / 1;
+  background-color: #f9fafb;
+}
+
+.meal-image img {
+  /* Force hardware acceleration */
+  transform: translateZ(0);
+  /* Prevent expensive subpixel rendering */
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Minimize paint areas on hover */
+.meal-card:hover {
+  /* Use contain to limit repaint to just this card */
+  contain: strict;
+}
+
+/* Optimize scroll performance */
+.categories-scroll {
+  /* Hint to browser for scroll optimization */
+  will-change: scroll-position;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Reduce paint by using contain */
+  contain: content;
+}
+
+/* Lazy rendering for grid items */
+.meals-grid .meal-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
+}
+
+/* Remove expensive box-shadows on scroll */
+@media (hover: none) {
+  .meal-card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+  }
+  .meal-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+    transform: none !important;
+  }
+}
+
+/* Font display swap - prevents FOIT (Flash of Invisible Text) */
+body {
+  font-display: swap;
+}
+
+/* Reduce repaints on header */
+.header {
+  contain: layout style;
+  will-change: transform;
+}
+
+/* Prevent layout thrash during scrolling */
+.header.scrolled {
+  /* Avoid height changes that cause reflow */
+  min-height: 60px;
+}
+
+/* Skeleton Loading Optimizations */
+.skeleton-card,
+.skeleton-cat {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Touch device optimizations */
+@media (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .meal-card:hover,
+  .category-card:hover,
+  .btn:hover {
+    transform: none !important;
+  }
+  
+  /* Increase touch targets */
+  .category-card {
+    min-height: 100px;
+  }
+  
+  /* Disable decorative animations */
+  .hero-pizza-icon {
+    animation: none !important;
+  }
+}
+
+/* Print optimization - remove unnecessary elements */
+@media print {
+  .header, .footer, .loading-overlay, .toast-container {
+    display: none !important;
+  }
+}
+
+/* Low-end device detection via media query */
+@media (max-device-memory: 4GB) {
+  /* Disable complex effects */
+  .hero::before,
+  .btn::before {
+    display: none !important;
+  }
+  
+  /* Simplify shadows */
+  .meal-card,
+  .category-card,
+  .btn {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+  }
+}
+
+/* === Instant Page Transition Ready === */
+.fade-in {
+  opacity: 1 !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Disable animated delays for initial content */
+.meal-card[style*="animation-delay"] {
+  animation: none !important;
+  opacity: 1 !important;
+}
