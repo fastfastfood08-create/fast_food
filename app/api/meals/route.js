@@ -179,7 +179,9 @@ export async function POST(request) {
                 }
             } catch (uploadError) {
                 console.error('Cloudinary Upload Failed:', uploadError);
-                return NextResponse.json({ error: 'فشل رفع الصورة للسحابة' }, { status: 500 });
+                return NextResponse.json({ 
+                    error: `فشل رفع الصورة للسحابة: ${uploadError.message || 'خطأ غير معروف'}` 
+                }, { status: 500 });
             }
         } 
         // Case 2: Image Removed (body.image is null/empty but old existed)
@@ -221,7 +223,9 @@ export async function POST(request) {
                 console.log(`Uploaded new image (Create) to Cloudinary: ${finalImageUrl}`);
             } catch (uploadError) {
                 console.error('Cloudinary Upload Failed (Create):', uploadError);
-                return NextResponse.json({ error: 'فشل رفع الصورة للسحابة' }, { status: 500 });
+                return NextResponse.json({ 
+                    error: `فشل رفع الصورة للسحابة: ${uploadError.message || 'خطأ غير معروف'}` 
+                }, { status: 500 });
             }
         }
 
