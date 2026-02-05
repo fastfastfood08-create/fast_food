@@ -173,7 +173,14 @@ async function initializeData(options = {}) {
     }
 
     if (loadAll || options.settings !== false) {
-        tasks.push(fetchIfNeeded('settings', () => ApiClient.getSettings()));
+        // ⚡ On homepage, use cached settings immediately, update in background
+        const isHomePage = !isAdminPage;
+        if (isHomePage && appState.settings && Object.keys(appState.settings).length > 0) {
+            console.log('⚡ Using cached settings, refreshing in background...');
+            fetchIfNeeded('settings', () => ApiClient.getSettings()); // Non-blocking
+        } else {
+            tasks.push(fetchIfNeeded('settings', () => ApiClient.getSettings()));
+        }
     }
 
     if ((loadAll && isAdminPage) || options.orders) {

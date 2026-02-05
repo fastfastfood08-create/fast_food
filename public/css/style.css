@@ -3,11 +3,8 @@
    برتقالي • أصفر • أسود - Premium Style
 ======================================== */
 
-/* Font Loading */
-/* Font Loading - Cairo for nicer Arabic typography */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
-
-/* Font loaded via HTML for performance */
+/* Font Loading - Cairo loaded via HTML for zero render-blocking */
+/* See index.html <link rel="preload" ...> for async font loading */
 
 :root {
   /* 🍊 COLORS */

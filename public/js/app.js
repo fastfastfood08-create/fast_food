@@ -10,47 +10,59 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-// تهيئة التطبيق
+// تهيئة التطبيق - ⚡ ULTRA-FAST Version
 async function initializeApp() {
     // تطبيق الإعدادات المحفوظة فوراً لتجنب الوميض
     loadRestaurantSettings();
 
-    // تهيئة البيانات والانتظار حتى تكتمل
-    // عرض واجهة التحميل الوهمية (Skeleton) فوراً لإعطاء شعور بالسرعة
-    renderSkeletonLoading();
-
-    if (typeof initializeData === 'function') {
-        await initializeData();
+    // إخفاء الـ Loader فوراً إذا كانت هناك بيانات مخبأة (Cached)
+    const hasCachedData = localStorage.getItem('cachedCategories_v2') && localStorage.getItem('cachedMeals_v2');
+    
+    if (hasCachedData) {
+        // ⚡ INSTANT RENDER from Cache
+        renderCategories();
+        renderMeals();
+        
+        // إخفاء التحميل فوراً
+        const loader = document.getElementById('loadingOverlay');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => loader.remove(), 200);
+        }
+        
+        // ثم تحميل البيانات الجديدة في الخلفية
+        if (typeof initializeData === 'function') {
+            initializeData().then(() => {
+                loadRestaurantSettings();
+                renderCategories();
+                renderMeals();
+            });
+        }
+    } else {
+        // No cache: Show skeleton, wait for data
+        renderSkeletonLoading();
+        
+        if (typeof initializeData === 'function') {
+            await initializeData();
+        }
+        
+        loadRestaurantSettings();
+        renderCategories();
+        renderMeals();
+        
+        // إخفاء التحميل
+        const loader = document.getElementById('loadingOverlay');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => loader.remove(), 200);
+        }
     }
-    
-    // تحميل إعدادات المطعم مرة أخرى (لتحديثها بالبيانات الجديدة)
-    loadRestaurantSettings();
-    
-    // عرض الفئات
-    renderCategories();
-    
-    // عرض الوجبات
-    renderMeals();
     
     // إعداد البحث
     setupSearch();
     
     // إعداد تفاعل الرأس مع التمرير
     setupHeaderScroll();
-
-    // === NEW: Wait for critical images to load ===
-    try {
-        await waitForCriticalImages();
-    } catch (e) {
-        console.warn('Image preloading timeout or error:', e);
-    }
-    
-    // إخفاء التحميل تدريجياً
-    const loader = document.getElementById('loadingOverlay');
-    if (loader) {
-        loader.classList.add('fade-out');
-        setTimeout(() => loader.remove(), 500); // Wait for transition
-    }
 }
 
 // دالة مساعدة لانتظار تحميل الصور المهمة
