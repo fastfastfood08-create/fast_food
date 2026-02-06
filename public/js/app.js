@@ -392,7 +392,7 @@ function createMealCard(meal, index) {
                     <h3 class="meal-name" style="margin:0;">${meal.name}</h3>
                     ${category ? `<span class="badge" style="font-size:0.75rem; background:var(--surface-hover); color:var(--text-secondary); padding:2px 8px; border-radius:12px; white-space:nowrap;">${category.name}</span>` : ''}
                 </div>
-                <p class="meal-description">${meal.description}</p>
+                <!-- Description removed from card view as per request -->
                 <div class="meal-footer">
                     <div class="meal-price">
                         <span class="price-label">${priceLabel}</span>
