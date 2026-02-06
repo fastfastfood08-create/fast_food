@@ -1,0 +1,22 @@
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git remote remove origin 
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git remote add origin https://github.com/fastfastfood08-create/fast_food.git 
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git branch -M main 
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git add . 
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git commit -m "Push to new repository" 
+[main d9bf522] Push to new repository
+ 2 files changed, 8 insertions(+)
+ create mode 100644 git_push_script.bat
+ create mode 100644 output.txt
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>git push -u origin main 
+remote: Permission to fastfastfood08-create/fast_food.git denied to zitounianes.
+fatal: unable to access 'https://github.com/fastfastfood08-create/fast_food.git/': The requested URL returned error: 403
+
+c:\Users\acerPc\OneDrive\Bureau\qssxsssqxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb>pause
+Press any key to continue . . . 
